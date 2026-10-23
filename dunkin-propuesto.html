@@ -157,6 +157,7 @@ const inactividad = crearInactividad(() => {
   reiniciarEstado();
   pintar();
 });
+precargar(['01-bebida-rosada', '02-cafe-caliente', '03-dona-sonrisa', '04-cafe-con-dona', '05-cafe-crema-chocolate'].map((f) => `img/productos/${f}.png`));
 reiniciarEstado();
 ajustarEscenario();
 pintar();

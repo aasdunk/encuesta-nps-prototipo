@@ -80,6 +80,11 @@ function caraSVG(i, tam, rojoMarca) {
   return `<svg width="${tam}" height="${tam}" viewBox="0 0 120 120" aria-hidden="true"><defs><radialGradient id="${id}" cx="35%" cy="28%" r="75%"><stop offset="0%" stop-color="${c[0]}"/><stop offset="60%" stop-color="${c[1]}"/><stop offset="100%" stop-color="${c[2]}"/></radialGradient></defs><circle cx="60" cy="60" r="58" fill="url(#${id})"/>${ojos}<path d="${BOCAS[i]}" fill="none" stroke="#1A1A1A" stroke-width="7" stroke-linecap="round"/></svg>`;
 }
 
+// Descarga las imágenes de antemano para que ningún paso aparezca en blanco al abrirse.
+function precargar(rutas) {
+  window._precargadas = rutas.map((src) => { const img = new Image(); img.src = src; return img; });
+}
+
 function escaparHTML(t) {
   return String(t).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }

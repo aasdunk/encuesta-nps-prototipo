@@ -148,6 +148,7 @@ const inactividad = crearInactividad(() => {
   pintar();
 });
 
+precargar(PASOS.map((p) => `img/pantallas/${p.img}.png`).concat(['02-cafe-caliente', '04-cafe-con-dona', '01-bebida-rosada', '05-cafe-crema-chocolate'].map((f) => `img/productos/${f}.png`)));
 reiniciarEstado();
 ajustarEscenario();
 pintar();
