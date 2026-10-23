@@ -7,7 +7,7 @@
 <title>Jimmy John's · Flujo propuesto</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@500;700;800&display=swap">
-<link rel="stylesheet" href="css/app.css?v=5">
+<link rel="stylesheet" href="css/app.css?v=6">
 <style>
 #escenario { font-family: 'Archivo', system-ui, sans-serif; color: #000000; }
 .anton { font-family: 'Anton', sans-serif; font-weight: 400; letter-spacing: 1px; }
@@ -27,8 +27,8 @@
 </head>
 <body>
 <div id="escenario"></div>
-<script src="js/config.js?v=5"></script>
-<script src="js/comun.js?v=5"></script>
+<script src="js/config.js?v=6"></script>
+<script src="js/comun.js?v=6"></script>
 <script>
 const MAYUS = CARAS.map((c) => c.toUpperCase());
 const ATRIBUTOS = [
@@ -41,8 +41,9 @@ const ATRIBUTOS = [
 const PRODUCTOS = ['SÁNDWICH', 'WRAP', 'PAPAS Y SNACKS', 'POSTRE', 'BEBIDA', 'VARIOS'];
 const MOTIVOS = ['RAPIDEZ DE ATENCIÓN', 'AMABILIDAD DEL PERSONAL', 'CALIDAD DEL SÁNDWICH', 'LIMPIEZA DEL LOCAL', 'PEDIDO INCOMPLETO O INCORRECTO', 'OTRO MOTIVO'];
 const NPS_COLORES = ['#2A1414', '#3E1515', '#5A1414', '#7A1212', '#9A0E18', '#B8081F', '#D10024', '#EA0029', '#8A8A8A', '#2E7D46', '#1D5C33'];
-const DATOS = ['EXPERIENCIA GENERAL (1 A 5) → ISN', 'TIPO DE CLIENTE Y PRODUCTO → ISN POR PRODUCTO Y CANAL', 'NOTA DE 1 ATRIBUTO AL AZAR → ISN POR ATRIBUTO', 'MOTIVOS DE LA INSATISFACCIÓN → QUÉ CORREGIR', 'NOTA DE 0 A 10 → NPS', 'COMENTARIO LIBRE (OPCIONAL)'];
-const NOMBRES_PASO = ['Experiencia', 'Producto', 'Atributo', 'Motivos', 'NPS', 'Comentario', 'Gracias'];
+const DATOS = ['EXPERIENCIA GENERAL (1 A 5) → ISN', 'TIPO DE CLIENTE Y PRODUCTO → ISN POR PRODUCTO Y CANAL', 'NOTA DE 1 ATRIBUTO AL AZAR → ISN POR ATRIBUTO', 'MOTIVOS DE LA INSATISFACCIÓN → QUÉ CORREGIR', 'NOTA DE 0 A 10 → NPS', 'COMENTARIO LIBRE (OPCIONAL)', 'NOMBRE Y CORREO CON CONSENTIMIENTO → BASE DE FIDELIZACIÓN'];
+const NOMBRES_PASO = ['Experiencia', 'Producto', 'Atributo', 'Motivos', 'NPS', 'Comentario', 'Ofertas', 'Gracias'];
+const GRACIAS = 7;
 const verDatos = new URLSearchParams(location.search).has('datos');
 const cap = (t) => t.charAt(0) + t.slice(1).toLowerCase();
 
@@ -56,7 +57,7 @@ function ir(n) {
   estado.hist.push(estado.paso);
   estado.paso = n;
   estado.reg.ultimo_paso = NOMBRES_PASO[n];
-  if (n === 6) terminar(true);
+  if (n === GRACIAS) terminar(true);
   pintar();
 }
 function volver() { if (estado.hist.length) { estado.paso = estado.hist.pop(); pintar(); } }
@@ -69,11 +70,11 @@ function terminar(completa) {
 }
 
 function cabecera(n) {
-  const total = negativo() ? 6 : 5;
-  const numero = [1, 2, 3, 4, negativo() ? 5 : 4, total][n];
+  const total = negativo() ? 7 : 6;
+  const numero = [1, 2, 3, 4, negativo() ? 5 : 4, negativo() ? 6 : 5, total][n];
   return `<img class="abs" src="img/marcas/jj-logo.webp" alt="Jimmy John's" style="left: 40px; top: 30px; width: 216px; height: 36px">
     <div class="abs" style="left: 0; top: 30px; width: 1280px; display: flex; justify-content: center"><span style="background: #000000; color: #FFFFFF; padding: 8px 16px; font-size: 14px; font-weight: 800; letter-spacing: 1px">PREGUNTA ${numero} DE ${total}</span></div>
-    ${n >= 1 && n <= 4 ? '<button class="volver-jj" data-accion="volver">VOLVER</button>' : ''}`;
+    ${(n >= 1 && n <= 4) || n === 6 ? '<button class="volver-jj" data-accion="volver">VOLVER</button>' : ''}`;
 }
 const filaCaras = () => `<div style="display: flex; gap: 52px">${MAYUS.map((c, i) => `<button class="cara" data-cara="${i}" aria-label="${c}">${caraSVG(i, 150, true)}<span>${c}</span></button>`).join('')}</div>`;
 
@@ -131,12 +132,29 @@ function pintar() {
           </div>
         </div>
       </div>`;
+  } else if (n === 6) {
+    html = `<img class="abs" src="img/productos/07-sandwich.png" alt="" style="left: -80px; bottom: 60px; width: 440px; transform: rotate(-8deg)">${cabecera(n)}
+      <div class="abs" style="left: 420px; top: 110px; width: 800px; display: flex; flex-direction: column; gap: 16px">
+        <h1 class="anton" style="margin: 0; font-size: 62px; line-height: 1.02">¡RECIBE <span class="rojo">OFERTAS Y DESCUENTOS!</span></h1>
+        <p style="margin: 0 0 6px; font-size: 22px; font-weight: 700; color: #3D3D3D">Déjanos tu nombre y correo y te enviaremos promociones exclusivas de Jimmy John's.</p>
+        <label style="font-size: 16px; font-weight: 800; letter-spacing: 1px">NOMBRE
+          <input id="of-nombre" class="campo" type="text" autocomplete="off" value="${valorOferta(estado, 'nombre')}" style="position: static; display: block; margin-top: 6px; width: 760px; height: 64px; border: 3px solid #000000; border-radius: 0"></label>
+        <label style="font-size: 16px; font-weight: 800; letter-spacing: 1px">CORREO
+          <input id="of-email" class="campo" type="email" autocomplete="off" value="${valorOferta(estado, 'email')}" style="position: static; display: block; margin-top: 6px; width: 760px; height: 64px; border: 3px solid #000000; border-radius: 0"></label>
+        <label style="display: flex; align-items: center; gap: 14px; font-size: 18px; font-weight: 700; color: #000000">
+          <input id="of-acepta" type="checkbox" ${estado.of && estado.of.acepta ? 'checked' : ''} style="width: 30px; height: 30px; accent-color: #EA0029"> Acepto recibir ofertas y promociones de Jimmy John's por correo.</label>
+        <div style="display: flex; align-items: center; gap: 16px; margin-top: 8px">
+          <button data-ofertas="si" class="anton" style="height: 72px; flex: 1; border: none; background: #EA0029; font-size: 30px; color: #FFFFFF">QUIERO RECIBIR OFERTAS</button>
+          <button data-ofertas="no" style="height: 72px; padding: 0 28px; border: none; background: transparent; font-size: 18px; font-weight: 800; letter-spacing: 1px; color: #000000; text-decoration: underline">NO, GRACIAS</button>
+        </div>
+      </div>`;
   } else {
     const r = estado.reg;
     const filas = [
       ['Experiencia', r.experiencia], ['Cliente', r.tipo_cliente], ['Producto', r.producto],
       ['Atributo al azar', `${cap(a.titulo)}: ${(r[a.campo] || '').toLowerCase()}`],
-      ['Motivos', negativo() ? (r.motivos || 'Sin selección') : 'No aplica'], ['NPS', r.nps], ['Comentario', r.comentario || 'Sin comentario']
+      ['Motivos', negativo() ? (r.motivos || 'Sin selección') : 'No aplica'], ['NPS', r.nps], ['Comentario', r.comentario || 'Sin comentario'],
+      ['Ofertas', r.acepta_ofertas === 'Sí' ? `Sí (${r.email})` : 'No']
     ];
     html = `
       <div class="pantalla centro" style="background: #EA0029; color: #FFFFFF; gap: 14px; padding: 40px">
@@ -150,7 +168,7 @@ function pintar() {
       </div>`;
     temporizadorGracias = setTimeout(() => { reiniciarEstado(); pintar(); }, (CONFIG.GRACIAS_SEG || 6) * 1000 + (verDatos ? 6000 : 0));
   }
-  if (verDatos && n <= 5) html += `<div class="dato"><span>DATO QUE SE GUARDA · ${DATOS[n]}</span></div>`;
+  if (verDatos && n < GRACIAS) html += `<div class="dato"><span>DATO QUE SE GUARDA · ${DATOS[n]}</span></div>`;
   escenario.innerHTML = html + '<a class="menu-link" href="index.html">Menú del prototipo</a>';
 
   escenario.querySelectorAll('[data-cara]').forEach((b) => b.onclick = () => {
@@ -182,6 +200,7 @@ function pintar() {
     b.setAttribute('aria-pressed', String(estado.sel[i]));
   });
   escenario.querySelectorAll('[data-nps]').forEach((b) => b.onclick = () => { estado.reg.nps = Number(b.dataset.nps); ir(5); });
+  conectarOfertas(estado, () => ir(GRACIAS));
   const ta = document.getElementById('comentario');
   if (ta) { ta.oninput = () => { estado.comentario = ta.value; }; setTimeout(() => ta.focus(), 50); }
   escenario.querySelectorAll('[data-accion]').forEach((b) => b.onclick = () => {
@@ -206,7 +225,7 @@ function pintar() {
 }
 
 const inactividad = crearInactividad(() => {
-  if (estado.paso > 0 && estado.paso < 6) terminar(false);
+  if (estado.paso > 0 && estado.paso < GRACIAS) terminar(false);
   reiniciarEstado();
   pintar();
 });

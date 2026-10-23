@@ -7,7 +7,7 @@
 <title>Dunkin · Flujo propuesto</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap">
-<link rel="stylesheet" href="css/app.css?v=5">
+<link rel="stylesheet" href="css/app.css?v=6">
 <style>
 .logo-dk { position: absolute; width: 170px; height: 36px; overflow: hidden; }
 .logo-dk img { position: absolute; left: 0; top: -11px; width: 260px; height: 57px; }
@@ -20,13 +20,14 @@
 </head>
 <body>
 <div id="escenario" style="color: #4A2C22"></div>
-<script src="js/config.js?v=5"></script>
-<script src="js/comun.js?v=5"></script>
+<script src="js/config.js?v=6"></script>
+<script src="js/comun.js?v=6"></script>
 <script>
 const MEJORAR = ['Rapidez de atención', 'Amabilidad del personal', 'Calidad del producto', 'Limpieza del local', 'Pedido incompleto o incorrecto', 'Otro motivo'];
 const GUSTO = ['Rapidez de atención', 'Amabilidad del personal', 'Calidad del producto', 'Limpieza del local', 'Variedad de productos', 'Otro motivo'];
 const NPS_COLORES = ['#A10E2B', '#C3201F', '#D9271C', '#EE3418', '#FF3A12', '#FF3E0D', '#FF5A0A', '#FF8C00', '#E6C200', '#22C42E', '#0BAF2A'];
-const PASOS = ['Experiencia', 'Seguimiento', 'NPS', 'Comentario', 'Gracias'];
+const PASOS = ['Experiencia', 'Tipo de cliente', 'Seguimiento', 'NPS', 'Comentario', 'Ofertas', 'Gracias'];
+const GRACIAS = 6;
 
 const escenario = document.getElementById('escenario');
 let estado;
@@ -37,7 +38,7 @@ function ir(n) {
   estado.hist.push(estado.paso);
   estado.paso = n;
   estado.reg.ultimo_paso = PASOS[n];
-  if (n === 4) terminar(true);
+  if (n === GRACIAS) terminar(true);
   pintar();
 }
 function volver() { if (estado.hist.length) { estado.paso = estado.hist.pop(); pintar(); } }
@@ -71,6 +72,17 @@ function pintar() {
         </div>
       </div>`;
   } else if (n === 1) {
+    html = `${logo(40, 28)}${botonVolver}
+      <img class="abs" src="img/productos/06-croissant.png" alt="" style="left: -90px; bottom: -70px; width: 430px">
+      <img class="abs" src="img/productos/01-bebida-rosada.png" alt="" style="right: -40px; bottom: -50px; height: 430px">
+      <div class="pantalla centro">
+        <h1 style="margin: 0 0 48px; font-size: 58px; line-height: 1.1; font-weight: 700; color: #F26B0F; text-align: center">Selecciona la opción<br>que mejor te identifica</h1>
+        <div style="display: flex; gap: 32px">
+          <button data-tipo="Cliente" style="width: 380px; height: 120px; border: none; border-radius: 24px; background: #E8178A; font-size: 38px; font-weight: 700; color: #FFFFFF">SOY CLIENTE</button>
+          <button data-tipo="Delivery" style="width: 380px; height: 120px; border: none; border-radius: 24px; background: #F26B0F; font-size: 38px; font-weight: 700; color: #FFFFFF">SOY DELIVERY</button>
+        </div>
+      </div>`;
+  } else if (n === 2) {
     const positivo = estado.exp <= 1;
     const lista = positivo ? GUSTO : MEJORAR;
     html = `${logo(40, 28)}${botonVolver}
@@ -85,7 +97,7 @@ function pintar() {
           <button data-accion="siguiente" style="height: 72px; padding: 0 52px; border: none; border-radius: 16px; background: #E8178A; font-size: 26px; font-weight: 700; color: #FFFFFF">Continuar</button>
         </div>
       </div>`;
-  } else if (n === 2) {
+  } else if (n === 3) {
     html = `${logo(40, 28)}${botonVolver}
       <div class="pantalla centro" style="padding-top: 40px">
         <h1 style="margin: 0 0 64px; max-width: 1100px; font-size: 64px; line-height: 1.1; font-weight: 700; color: #CC3366; text-align: center">¿Recomendarías <span style="color: #F26B0F">DUNKIN'</span> a algún amigo o familiar?</h1>
@@ -97,7 +109,7 @@ function pintar() {
           ${NPS_COLORES.map((c, i) => `<button class="circulo" data-nps="${i}" style="background: ${c}">${i}</button>`).join('')}
         </div>
       </div>`;
-  } else if (n === 3) {
+  } else if (n === 4) {
     html = `
       <div class="pantalla" style="background: #CB2F63; color: #FFFFFF">
         <img class="abs" src="img/productos/02-cafe-caliente.png" alt="" style="right: -40px; bottom: -60px; height: 520px">
@@ -110,6 +122,23 @@ function pintar() {
             <button data-accion="siguiente" style="height: 72px; flex: 1; border: none; border-radius: 999px; background: #F26B0F; font-size: 30px; font-weight: 700; color: #FFFFFF">Enviar</button>
             <button data-accion="siguiente" style="height: 72px; padding: 0 28px; border: none; background: transparent; font-size: 24px; font-weight: 600; color: #FFFFFF; text-decoration: underline">Omitir</button>
           </div>
+        </div>
+      </div>`;
+  } else if (n === 5) {
+    html = `${logo(40, 28)}${botonVolver}
+      <img class="abs" src="img/productos/04-cafe-con-dona.png" alt="" style="left: 30px; bottom: -60px; height: 640px">
+      <div class="abs" style="left: 420px; top: 110px; width: 800px; display: flex; flex-direction: column; gap: 16px">
+        <h1 style="margin: 0; font-size: 56px; line-height: 1.05; font-weight: 700; color: #F26B0F">¡Recibe ofertas y descuentos!</h1>
+        <p style="margin: 0 0 6px; font-size: 24px; font-weight: 500; color: #7A5A4E">Déjanos tu nombre y correo y te enviaremos promociones exclusivas de Dunkin'.</p>
+        <label style="font-size: 20px; font-weight: 600; color: #E8178A">Nombre
+          <input id="of-nombre" class="campo" type="text" autocomplete="off" value="${valorOferta(estado, 'nombre')}" style="position: static; display: block; margin-top: 6px; width: 760px; height: 64px; border: 2px solid #D8D2CE; border-radius: 12px"></label>
+        <label style="font-size: 20px; font-weight: 600; color: #E8178A">Correo
+          <input id="of-email" class="campo" type="email" autocomplete="off" value="${valorOferta(estado, 'email')}" style="position: static; display: block; margin-top: 6px; width: 760px; height: 64px; border: 2px solid #D8D2CE; border-radius: 12px"></label>
+        <label style="display: flex; align-items: center; gap: 14px; font-size: 20px; font-weight: 500; color: #4A2C22">
+          <input id="of-acepta" type="checkbox" ${estado.of && estado.of.acepta ? 'checked' : ''} style="width: 30px; height: 30px; accent-color: #E8178A"> Acepto recibir ofertas y promociones de Dunkin' por correo.</label>
+        <div style="display: flex; align-items: center; gap: 16px; margin-top: 8px">
+          <button data-ofertas="si" style="height: 72px; flex: 1; border: none; border-radius: 999px; background: #E8178A; font-size: 28px; font-weight: 700; color: #FFFFFF">Quiero recibir ofertas</button>
+          <button data-ofertas="no" style="height: 72px; padding: 0 28px; border: none; background: transparent; font-size: 24px; font-weight: 600; color: #4A2C22; text-decoration: underline">No, gracias</button>
         </div>
       </div>`;
   } else {
@@ -141,7 +170,9 @@ function pintar() {
     b.classList.toggle('sel', estado.sel[i]);
     b.setAttribute('aria-pressed', String(estado.sel[i]));
   });
-  escenario.querySelectorAll('[data-nps]').forEach((b) => b.onclick = () => { estado.reg.nps = Number(b.dataset.nps); ir(3); });
+  escenario.querySelectorAll('[data-tipo]').forEach((b) => b.onclick = () => { estado.reg.tipo_cliente = b.dataset.tipo; ir(2); });
+  escenario.querySelectorAll('[data-nps]').forEach((b) => b.onclick = () => { estado.reg.nps = Number(b.dataset.nps); ir(4); });
+  conectarOfertas(estado, () => ir(GRACIAS));
   const ta = document.getElementById('comentario');
   if (ta) { ta.oninput = () => { estado.comentario = ta.value; }; setTimeout(() => ta.focus(), 50); }
   escenario.querySelectorAll('[data-accion]').forEach((b) => b.onclick = () => {
@@ -153,7 +184,7 @@ function pintar() {
 }
 
 const inactividad = crearInactividad(() => {
-  if (estado.paso > 0 && estado.paso < 4) terminar(false);
+  if (estado.paso > 0 && estado.paso < GRACIAS) terminar(false);
   reiniciarEstado();
   pintar();
 });

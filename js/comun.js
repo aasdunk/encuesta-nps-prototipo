@@ -5,7 +5,7 @@ const CAMPOS_REGISTRO = [
   'id', 'marca', 'flujo', 'inicio', 'fin', 'duracion_seg', 'completada', 'ultimo_paso',
   'experiencia', 'tipo_cliente', 'producto',
   'calidad', 'exactitud', 'velocidad', 'amabilidad', 'limpieza', 'atributo_evaluado',
-  'motivos', 'nps', 'comentario', 'nombres', 'apellidos', 'email', 'dispositivo'
+  'motivos', 'nps', 'comentario', 'nombres', 'apellidos', 'email', 'acepta_ofertas', 'dispositivo'
 ];
 
 const CARAS = ['Muy satisfecho', 'Satisfecho', 'Indiferente', 'Insatisfecho', 'Muy insatisfecho'];
@@ -78,6 +78,38 @@ function caraSVG(i, tam, rojoMarca) {
     ? '<path d="M30 46 Q38 38 46 46 M74 46 Q82 38 90 46" fill="none" stroke="#1A1A1A" stroke-width="5" stroke-linecap="round"/>'
     : '<ellipse cx="44" cy="48" rx="4" ry="6" fill="#1A1A1A"/><ellipse cx="76" cy="48" rx="4" ry="6" fill="#1A1A1A"/>';
   return `<svg width="${tam}" height="${tam}" viewBox="0 0 120 120" aria-hidden="true"><defs><radialGradient id="${id}" cx="35%" cy="28%" r="75%"><stop offset="0%" stop-color="${c[0]}"/><stop offset="60%" stop-color="${c[1]}"/><stop offset="100%" stop-color="${c[2]}"/></radialGradient></defs><circle cx="60" cy="60" r="58" fill="url(#${id})"/>${ojos}<path d="${BOCAS[i]}" fill="none" stroke="#1A1A1A" stroke-width="7" stroke-linecap="round"/></svg>`;
+}
+
+// Pantalla de fidelización: valida nombre, correo y consentimiento, y guarda la decisión en el registro.
+const CORREO_VALIDO = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+function conectarOfertas(estado, alContinuar) {
+  const nombre = document.getElementById('of-nombre');
+  if (!nombre) return;
+  const correo = document.getElementById('of-email');
+  const acepta = document.getElementById('of-acepta');
+  const si = document.querySelector('[data-ofertas="si"]');
+  const no = document.querySelector('[data-ofertas="no"]');
+  const validar = () => {
+    estado.of = { nombre: nombre.value.trim(), email: correo.value.trim(), acepta: acepta.checked };
+    si.disabled = !(estado.of.nombre && CORREO_VALIDO.test(estado.of.email) && estado.of.acepta);
+  };
+  nombre.oninput = validar;
+  correo.oninput = validar;
+  acepta.onchange = validar;
+  validar();
+  setTimeout(() => nombre.focus(), 50);
+  si.onclick = () => {
+    if (si.disabled) return;
+    Object.assign(estado.reg, { nombres: estado.of.nombre, email: estado.of.email, acepta_ofertas: 'Sí' });
+    alContinuar();
+  };
+  no.onclick = () => {
+    Object.assign(estado.reg, { nombres: '', email: '', acepta_ofertas: 'No' });
+    alContinuar();
+  };
+}
+function valorOferta(estado, campo) {
+  return escaparHTML((estado.of && estado.of[campo]) || '');
 }
 
 // Descarga las imágenes de antemano para que ningún paso aparezca en blanco al abrirse.
