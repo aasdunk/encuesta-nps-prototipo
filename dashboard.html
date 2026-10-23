@@ -1,0 +1,451 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Encuesta en tienda · Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&display=swap">
+<style>
+:root {
+  color-scheme: light;
+  --fondo: #f4f4f2;
+  --superficie: #fcfcfb;
+  --borde: #e4e3df;
+  --texto: #0b0b0b;
+  --texto-2: #52514e;
+  --texto-3: #7a7974;
+  --grilla: #ecebe7;
+  --serie-1: #2a78d6;
+  --serie-2: #eb6834;
+  --serie-3: #1baf7a;
+  --div-pos-2: #256abf;
+  --div-pos-1: #86b6ef;
+  --div-neutro: #d6d5d0;
+  --div-neg-1: #f0a3a3;
+  --div-neg-2: #d03b3b;
+  --bien: #0ca30c;
+  --alerta: #fab219;
+  --critico: #d03b3b;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --fondo: #111110;
+    --superficie: #1a1a19;
+    --borde: #2e2e2c;
+    --texto: #f0efec;
+    --texto-2: #c3c2b7;
+    --texto-3: #9a998f;
+    --grilla: #2a2a28;
+    --serie-1: #3987e5;
+    --serie-2: #d95926;
+    --serie-3: #199e70;
+    --div-pos-2: #3987e5;
+    --div-pos-1: #1c5cab;
+    --div-neutro: #4a4a46;
+    --div-neg-1: #8f3a3a;
+    --div-neg-2: #e66767;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--fondo); color: var(--texto); font-family: 'Archivo', system-ui, sans-serif; }
+.app { max-width: 1440px; margin: 0 auto; padding: 24px 16px 48px; }
+header { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+h1 { margin: 0; font-size: 26px; font-weight: 800; }
+.sub { margin: 4px 0 0; color: var(--texto-2); font-size: 14px; }
+.acciones { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn { height: 38px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--borde); background: var(--superficie); color: var(--texto); font: 600 14px 'Archivo', sans-serif; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; }
+.btn.principal { background: var(--texto); color: var(--superficie); border-color: var(--texto); }
+.filtros { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; background: var(--superficie); border: 1px solid var(--borde); border-radius: 14px; padding: 12px 16px; margin-bottom: 16px; }
+.filtros label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; font-weight: 700; color: var(--texto-2); text-transform: uppercase; letter-spacing: 0.5px; }
+.filtros select { height: 36px; min-width: 150px; border-radius: 8px; border: 1px solid var(--borde); background: var(--fondo); color: var(--texto); font: 500 14px 'Archivo', sans-serif; padding: 0 8px; }
+.filtros .check { flex-direction: row; align-items: center; gap: 8px; height: 36px; text-transform: none; font-size: 14px; color: var(--texto); }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.kpi { background: var(--superficie); border: 1px solid var(--borde); border-radius: 14px; padding: 14px 16px; }
+.kpi .t { font-size: 12px; font-weight: 700; color: var(--texto-2); text-transform: uppercase; letter-spacing: 0.5px; }
+.kpi .v { font-size: 34px; font-weight: 800; margin-top: 6px; font-variant-numeric: tabular-nums; }
+.kpi .d { font-size: 13px; color: var(--texto-3); margin-top: 2px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 560px), 1fr)); gap: 16px; margin-bottom: 16px; }
+.card { background: var(--superficie); border: 1px solid var(--borde); border-radius: 14px; padding: 16px; min-width: 0; }
+.card h2 { margin: 0; font-size: 16px; font-weight: 700; }
+.card .nota { margin: 4px 0 12px; font-size: 13px; color: var(--texto-2); }
+.lienzo { position: relative; height: 260px; }
+.lienzo.alto { height: 320px; }
+.vacio { color: var(--texto-3); font-size: 14px; padding: 24px 0; text-align: center; }
+.tabla { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--texto-2); border-bottom: 1px solid var(--borde); padding: 8px; white-space: nowrap; }
+td { border-bottom: 1px solid var(--grilla); padding: 8px; vertical-align: top; font-variant-numeric: tabular-nums; }
+td.num, th.num { text-align: right; }
+.punto { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: middle; }
+.estado { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; white-space: nowrap; }
+.estado::before { content: ''; width: 8px; height: 8px; border-radius: 999px; background: currentColor; }
+.estado.ok { color: var(--bien); }
+.estado.alerta { color: #b07a00; }
+.estado.mal { color: var(--critico); }
+.pie { margin-top: 24px; font-size: 13px; color: var(--texto-2); line-height: 1.5; }
+.error { background: #fde8e8; color: #8a1c1c; border-radius: 12px; padding: 12px 16px; margin-bottom: 16px; display: none; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div>
+      <h1>Encuesta de satisfacción en tienda · Dashboard</h1>
+      <p class="sub" id="estado-datos">Cargando respuestas…</p>
+    </div>
+    <div class="acciones">
+      <a class="btn" href="index.html">← Menú del prototipo</a>
+      <button class="btn" id="btn-csv" type="button">Exportar CSV</button>
+      <button class="btn principal" id="btn-actualizar" type="button">Actualizar</button>
+    </div>
+  </header>
+
+  <div class="error" id="error"></div>
+
+  <section class="filtros" aria-label="Filtros">
+    <label>Marca<select id="f-marca"></select></label>
+    <label>Flujo<select id="f-flujo"></select></label>
+    <label>Gerente de operaciones<select id="f-gop"></select></label>
+    <label>Supervisor<select id="f-supervisor"></select></label>
+    <label>Local<select id="f-local"></select></label>
+    <label>Período<select id="f-periodo">
+      <option value="hoy">Hoy</option>
+      <option value="7">Últimos 7 días</option>
+      <option value="30">Últimos 30 días</option>
+      <option value="todo" selected>Todo</option>
+    </select></label>
+    <label class="check"><input type="checkbox" id="f-completas"> Solo encuestas completas</label>
+  </section>
+
+  <section class="kpis" id="kpis" aria-label="Indicadores principales"></section>
+
+  <section class="grid">
+    <div class="card"><h2>Experiencia general por flujo</h2><p class="nota">Porcentaje de respuestas en cada carita. ISN = satisfechos − insatisfechos.</p><div class="lienzo"><canvas id="g-experiencia"></canvas></div></div>
+    <div class="card"><h2>NPS por flujo</h2><p class="nota">Promotores (9-10), pasivos (7-8) y detractores (0-6). NPS = % promotores − % detractores.</p><div class="lienzo"><canvas id="g-nps"></canvas></div></div>
+  </section>
+
+  <section class="grid">
+    <div class="card"><h2>Respuestas por día</h2><p class="nota">Encuestas recibidas, completas e incompletas.</p><div class="lienzo"><canvas id="g-dias"></canvas></div></div>
+    <div class="card"><h2>ISN por día</h2><p class="nota">Satisfacción neta de la experiencia general, día a día.</p><div class="lienzo"><canvas id="g-isn-dia"></canvas></div></div>
+  </section>
+
+  <section class="grid">
+    <div class="card"><h2>ISN por atributo</h2><p class="nota">Calidad, exactitud, velocidad, amabilidad y limpieza. Entre paréntesis, cuántas respuestas tiene cada uno.</p><div class="lienzo"><canvas id="g-atributos"></canvas></div></div>
+    <div class="card"><h2>ISN por producto</h2><p class="nota">Satisfacción general de quienes compraron cada producto. Una respuesta puede tener varios productos.</p><div class="lienzo"><canvas id="g-productos"></canvas></div></div>
+  </section>
+
+  <section class="grid">
+    <div class="card"><h2>¿Qué podemos mejorar?</h2><p class="nota">Motivos elegidos por clientes indiferentes o insatisfechos.</p><div class="lienzo"><canvas id="g-mejorar"></canvas></div></div>
+    <div class="card"><h2>¿Qué fue lo que más gustó?</h2><p class="nota">Motivos elegidos por clientes satisfechos (flujo propuesto de Dunkin).</p><div class="lienzo"><canvas id="g-gusto"></canvas></div></div>
+  </section>
+
+  <section class="grid">
+    <div class="card"><h2>¿Dónde se abandona la encuesta?</h2><p class="nota">Último paso alcanzado por las encuestas incompletas.</p><div class="lienzo"><canvas id="g-abandono"></canvas></div></div>
+    <div class="card"><h2>Comparación de flujos</h2><p class="nota">Cómo rinde cada versión de la encuesta.</p><div class="tabla" id="t-flujos"></div></div>
+  </section>
+
+  <section class="grid">
+    <div class="card" style="grid-column: 1 / -1"><h2>Locales</h2><p class="nota">Ranking por ISN. El estado avisa cuando un local lleva más de 2 horas sin enviar respuestas (posible tablet apagada o sin internet).</p><div class="tabla" id="t-locales"></div></div>
+  </section>
+
+  <section class="grid">
+    <div class="card" style="grid-column: 1 / -1"><h2>Comentarios recientes</h2><p class="nota">Los 30 comentarios más nuevos del filtro actual.</p><div class="tabla" id="t-comentarios"></div></div>
+  </section>
+
+  <p class="pie">
+    <b>ISN</b> (índice de satisfacción neta) = % de muy satisfechos y satisfechos − % de insatisfechos y muy insatisfechos; "indiferente" cuenta como neutro, igual que en el reporte de Global Metrics.
+    <b>NPS</b> = % de notas 9-10 − % de notas 0-6. Los datos personales (nombre, apellidos y correo) no se muestran aquí: solo se indica si la persona dejó sus datos para recibir ofertas.
+    Los locales, supervisores y gerentes de operaciones se configuran en la hoja <b>Locales</b> de la planilla.
+  </p>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="js/config.js?v=8"></script>
+<script>
+const SATISFECHOS = ['Muy satisfecho', 'Satisfecho'];
+const INSATISFECHOS = ['Insatisfecho', 'Muy insatisfecho'];
+const CARAS = ['Muy satisfecho', 'Satisfecho', 'Indiferente', 'Insatisfecho', 'Muy insatisfecho'];
+const ATRIBUTOS = ['calidad', 'exactitud', 'velocidad', 'amabilidad', 'limpieza'];
+// Cada flujo tiene siempre el mismo color, sin importar los filtros
+const FLUJOS = ['Dunkin · Actual', 'Dunkin · Propuesto', "Jimmy John's · Propuesto"];
+
+const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const colorFlujo = (f) => css('--serie-' + (FLUJOS.indexOf(f) + 1)) || css('--texto-3');
+const pct = (x) => (x === null || isNaN(x) ? '—' : Math.round(x * 100) + '%');
+const num = (x) => (x === null || isNaN(x) ? '—' : (x > 0 ? '+' : '') + Math.round(x * 100));
+const escapar = (t) => String(t === undefined || t === null ? '' : t).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const cap = (t) => t ? t.charAt(0).toUpperCase() + t.slice(1).toLowerCase() : t;
+
+let todas = [];
+let locales = {};
+const graficos = {};
+
+function isn(valores) {
+  const v = valores.filter(Boolean);
+  if (!v.length) return { n: 0, isn: null, sat: 0, ins: 0 };
+  const sat = v.filter((x) => SATISFECHOS.includes(x)).length;
+  const ins = v.filter((x) => INSATISFECHOS.includes(x)).length;
+  return { n: v.length, sat, ins, isn: (sat - ins) / v.length };
+}
+function nps(valores) {
+  const v = valores.filter((x) => x !== '' && x !== null && x !== undefined && !isNaN(Number(x))).map(Number);
+  if (!v.length) return { n: 0, nps: null, pro: 0, pas: 0, det: 0 };
+  const pro = v.filter((x) => x >= 9).length;
+  const det = v.filter((x) => x <= 6).length;
+  return { n: v.length, pro, pas: v.length - pro - det, det, nps: (pro - det) / v.length };
+}
+function mediana(valores) {
+  const v = valores.filter((x) => x > 0).sort((a, b) => a - b);
+  if (!v.length) return null;
+  const m = Math.floor(v.length / 2);
+  return v.length % 2 ? v[m] : (v[m - 1] + v[m]) / 2;
+}
+const diaDe = (iso) => { const d = new Date(iso); return isNaN(d) ? '' : d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+
+function normalizar(r) {
+  const loc = locales[r.local] || {};
+  return Object.assign({}, r, {
+    local: r.local || 'SIN-LOCAL',
+    flujoClave: `${r.marca} · ${r.flujo}`,
+    completada: r.completada === true || r.completada === 'TRUE',
+    fecha: new Date(r.inicio || r.recibido),
+    nombreLocal: loc.nombre || '',
+    supervisor: loc.supervisor || 'Sin asignar',
+    gop: loc.gop || 'Sin asignar'
+  });
+}
+
+async function cargar() {
+  const url = window.CONFIG && window.CONFIG.APPS_SCRIPT_URL;
+  const estado = document.getElementById('estado-datos');
+  estado.textContent = 'Cargando respuestas…';
+  try {
+    const resp = await fetch(url + '?accion=datos&t=' + Date.now());
+    const datos = await resp.json();
+    if (!datos.ok) throw new Error(datos.error || 'respuesta inválida');
+    locales = {};
+    (datos.locales || []).forEach((l) => { locales[l.local] = l; });
+    todas = (datos.respuestas || []).map(normalizar);
+    document.getElementById('error').style.display = 'none';
+    estado.textContent = `${todas.length} respuestas en total · actualizado ${new Date().toLocaleString('es-CL')}`;
+    llenarFiltros();
+    pintar();
+  } catch (e) {
+    const err = document.getElementById('error');
+    err.textContent = 'No se pudieron cargar las respuestas: ' + e.message;
+    err.style.display = 'block';
+    estado.textContent = 'Sin datos';
+  }
+}
+
+const FILTROS = [
+  ['f-marca', 'Todas las marcas', (r) => r.marca],
+  ['f-flujo', 'Todos los flujos', (r) => r.flujo],
+  ['f-gop', 'Todos', (r) => r.gop],
+  ['f-supervisor', 'Todos', (r) => r.supervisor],
+  ['f-local', 'Todos los locales', (r) => r.local]
+];
+function llenarFiltros() {
+  FILTROS.forEach(([id, todos, campo]) => {
+    const sel = document.getElementById(id);
+    const actual = sel.value;
+    const valores = [...new Set(todas.map(campo).filter(Boolean))].sort();
+    sel.innerHTML = `<option value="">${todos}</option>` + valores.map((v) => `<option value="${escapar(v)}">${escapar(v)}${id === 'f-local' && locales[v] ? ' · ' + escapar(locales[v].nombre) : ''}</option>`).join('');
+    if (valores.includes(actual)) sel.value = actual;
+  });
+}
+function filtradas(incluirIncompletas) {
+  const periodo = document.getElementById('f-periodo').value;
+  const desde = new Date();
+  if (periodo === 'hoy') desde.setHours(0, 0, 0, 0);
+  else if (periodo !== 'todo') desde.setDate(desde.getDate() - Number(periodo));
+  const solo = document.getElementById('f-completas').checked && !incluirIncompletas;
+  return todas.filter((r) => FILTROS.every(([id, , campo]) => { const v = document.getElementById(id).value; return !v || campo(r) === v; })
+    && (periodo === 'todo' || r.fecha >= desde)
+    && (!solo || r.completada));
+}
+
+function grafico(id, config) {
+  if (graficos[id]) graficos[id].destroy();
+  const lienzo = document.getElementById(id);
+  const vacio = lienzo.parentElement.querySelector('.vacio');
+  if (vacio) vacio.remove();
+  const tieneDatos = config.data.datasets.some((d) => d.data.some((x) => x !== null && x !== 0));
+  if (!tieneDatos) {
+    lienzo.style.display = 'none';
+    lienzo.insertAdjacentHTML('afterend', '<div class="vacio">Sin datos para este filtro</div>');
+    return;
+  }
+  lienzo.style.display = '';
+  Chart.defaults.font.family = 'Archivo, system-ui, sans-serif';
+  Chart.defaults.color = css('--texto-2');
+  Chart.defaults.borderColor = css('--grilla');
+  graficos[id] = new Chart(lienzo, config);
+}
+const barras = (extra) => Object.assign({ borderRadius: 4, maxBarThickness: 28, borderSkipped: 'start' }, extra);
+
+function pintar() {
+  const base = filtradas(true);
+  const rs = filtradas(false);
+  const completas = base.filter((r) => r.completada);
+  const general = isn(rs.map((r) => r.experiencia));
+  const recomendacion = nps(rs.map((r) => r.nps));
+  const vieronOfertas = rs.filter((r) => r.acepta_ofertas === 'Sí' || r.acepta_ofertas === 'No');
+  const conContacto = vieronOfertas.filter((r) => r.acepta_ofertas === 'Sí').length;
+
+  const kpis = [
+    ['Respuestas', rs.length, `${completas.length} completas · ${base.length - completas.length} incompletas`],
+    ['ISN experiencia', num(general.isn), `${general.sat} satisfechos · ${general.ins} insatisfechos`],
+    ['NPS', num(recomendacion.nps), `${recomendacion.n} notas · ${recomendacion.pro} promotores · ${recomendacion.det} detractores`],
+    ['Abandono', base.length ? pct((base.length - completas.length) / base.length) : '—', 'Encuestas que no llegaron al final'],
+    ['Duración mediana', mediana(completas.map((r) => Number(r.duracion_seg))) === null ? '—' : Math.round(mediana(completas.map((r) => Number(r.duracion_seg)))) + ' s', 'De las encuestas completas'],
+    ['Dejan su contacto', vieronOfertas.length ? pct(conContacto / vieronOfertas.length) : '—', `${conContacto} de ${vieronOfertas.length} que vieron la pantalla de ofertas`]
+  ];
+  document.getElementById('kpis').innerHTML = kpis.map(([t, v, d]) => `<div class="kpi"><div class="t">${t}</div><div class="v">${v}</div><div class="d">${escapar(d)}</div></div>`).join('');
+
+  const flujos = FLUJOS.filter((f) => rs.some((r) => r.flujoClave === f));
+
+  // Experiencia por flujo: barras 100% apiladas, escala divergente azul-gris-rojo
+  const coloresCaras = [css('--div-pos-2'), css('--div-pos-1'), css('--div-neutro'), css('--div-neg-1'), css('--div-neg-2')];
+  grafico('g-experiencia', {
+    type: 'bar',
+    data: {
+      labels: flujos.map((f) => `${f} (ISN ${num(isn(rs.filter((r) => r.flujoClave === f).map((r) => r.experiencia)).isn)})`),
+      datasets: CARAS.map((c, i) => barras({
+        label: c, backgroundColor: coloresCaras[i], borderColor: css('--superficie'), borderWidth: 1, borderRadius: 0,
+        data: flujos.map((f) => { const v = rs.filter((r) => r.flujoClave === f && r.experiencia); return v.length ? v.filter((r) => r.experiencia === c).length / v.length * 100 : 0; })
+      }))
+    },
+    options: { indexAxis: 'y', maintainAspectRatio: false, scales: { x: { stacked: true, max: 100, ticks: { callback: (v) => v + '%' } }, y: { stacked: true, grid: { display: false } } },
+      plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } }, tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${Math.round(c.raw)}%` } } } }
+  });
+
+  grafico('g-nps', {
+    type: 'bar',
+    data: {
+      labels: flujos.map((f) => `${f} (NPS ${num(nps(rs.filter((r) => r.flujoClave === f).map((r) => r.nps)).nps)})`),
+      datasets: [['Detractores (0-6)', 'det', css('--div-neg-2')], ['Pasivos (7-8)', 'pas', css('--div-neutro')], ['Promotores (9-10)', 'pro', css('--div-pos-2')]].map(([label, k, color]) => barras({
+        label, backgroundColor: color, borderColor: css('--superficie'), borderWidth: 1, borderRadius: 0,
+        data: flujos.map((f) => { const x = nps(rs.filter((r) => r.flujoClave === f).map((r) => r.nps)); return x.n ? x[k] / x.n * 100 : 0; })
+      }))
+    },
+    options: { indexAxis: 'y', maintainAspectRatio: false, scales: { x: { stacked: true, max: 100, ticks: { callback: (v) => v + '%' } }, y: { stacked: true, grid: { display: false } } },
+      plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } }, tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${Math.round(c.raw)}%` } } } }
+  });
+
+  // Serie diaria
+  const dias = [...new Set(base.map((r) => diaDe(r.fecha)).filter(Boolean))].sort();
+  grafico('g-dias', {
+    type: 'bar',
+    data: { labels: dias, datasets: [
+      barras({ label: 'Completas', backgroundColor: css('--serie-1'), data: dias.map((d) => base.filter((r) => diaDe(r.fecha) === d && r.completada).length) }),
+      barras({ label: 'Incompletas', backgroundColor: css('--div-neutro'), data: dias.map((d) => base.filter((r) => diaDe(r.fecha) === d && !r.completada).length) })
+    ] },
+    options: { maintainAspectRatio: false, scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, beginAtZero: true, ticks: { precision: 0 } } }, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } } } }
+  });
+  grafico('g-isn-dia', {
+    type: 'line',
+    data: { labels: dias, datasets: [{ label: 'ISN', borderColor: css('--serie-1'), backgroundColor: css('--serie-1'), borderWidth: 2, pointRadius: 4, pointHoverRadius: 6, tension: 0.2,
+      data: dias.map((d) => { const x = isn(rs.filter((r) => diaDe(r.fecha) === d).map((r) => r.experiencia)).isn; return x === null ? null : Math.round(x * 100); }) }] },
+    options: { maintainAspectRatio: false, interaction: { mode: 'index', intersect: false }, scales: { y: { min: -100, max: 100 }, x: { grid: { display: false } } }, plugins: { legend: { display: false } } }
+  });
+
+  // Atributos y productos: una serie, un color
+  const porAtributo = ATRIBUTOS.map((a) => ({ a, x: isn(rs.map((r) => r[a])) }));
+  grafico('g-atributos', {
+    type: 'bar',
+    data: { labels: porAtributo.map((p) => `${cap(p.a)} (${p.x.n})`), datasets: [barras({ label: 'ISN', backgroundColor: css('--serie-1'), data: porAtributo.map((p) => p.x.isn === null ? null : Math.round(p.x.isn * 100)) })] },
+    options: { indexAxis: 'y', maintainAspectRatio: false, scales: { x: { min: -100, max: 100 }, y: { grid: { display: false } } }, plugins: { legend: { display: false } } }
+  });
+  const productos = {};
+  rs.forEach((r) => String(r.producto || '').split(',').map((p) => p.trim()).filter((p) => p && p !== 'No aplica').forEach((p) => { (productos[p] = productos[p] || []).push(r.experiencia); }));
+  const listaProductos = Object.entries(productos).map(([p, v]) => ({ p, x: isn(v) })).sort((a, b) => (b.x.isn || -2) - (a.x.isn || -2));
+  grafico('g-productos', {
+    type: 'bar',
+    data: { labels: listaProductos.map((p) => `${p.p} (${p.x.n})`), datasets: [barras({ label: 'ISN', backgroundColor: css('--serie-1'), data: listaProductos.map((p) => Math.round(p.x.isn * 100)) })] },
+    options: { indexAxis: 'y', maintainAspectRatio: false, scales: { x: { min: -100, max: 100 }, y: { grid: { display: false } } }, plugins: { legend: { display: false } } }
+  });
+
+  // Motivos
+  const contar = (filas, gusto) => {
+    const c = {};
+    filas.forEach((r) => {
+      let m = String(r.motivos || '');
+      if (!m) return;
+      const esGusto = m.startsWith('Gustó:');
+      if (esGusto !== gusto) return;
+      m = m.replace(/^(Gustó|Mejorar):\s*/, '');
+      m.split(',').map((x) => x.trim()).filter(Boolean).forEach((x) => { c[x] = (c[x] || 0) + 1; });
+    });
+    return Object.entries(c).sort((a, b) => b[1] - a[1]);
+  };
+  [['g-mejorar', contar(rs, false)], ['g-gusto', contar(rs, true)]].forEach(([id, lista]) => grafico(id, {
+    type: 'bar',
+    data: { labels: lista.map((x) => x[0]), datasets: [barras({ label: 'Menciones', backgroundColor: css('--serie-1'), data: lista.map((x) => x[1]) })] },
+    options: { indexAxis: 'y', maintainAspectRatio: false, scales: { x: { beginAtZero: true, ticks: { precision: 0 } }, y: { grid: { display: false } } }, plugins: { legend: { display: false } } }
+  }));
+
+  const incompletas = base.filter((r) => !r.completada);
+  const pasos = {};
+  incompletas.forEach((r) => { const p = r.ultimo_paso || 'Sin dato'; pasos[p] = (pasos[p] || 0) + 1; });
+  const listaPasos = Object.entries(pasos).sort((a, b) => b[1] - a[1]);
+  grafico('g-abandono', {
+    type: 'bar',
+    data: { labels: listaPasos.map((x) => x[0]), datasets: [barras({ label: 'Encuestas abandonadas', backgroundColor: css('--serie-1'), data: listaPasos.map((x) => x[1]) })] },
+    options: { indexAxis: 'y', maintainAspectRatio: false, scales: { x: { beginAtZero: true, ticks: { precision: 0 } }, y: { grid: { display: false } } }, plugins: { legend: { display: false } } }
+  });
+
+  // Tabla de flujos
+  document.getElementById('t-flujos').innerHTML = `<table><thead><tr><th>Flujo</th><th class="num">Respuestas</th><th class="num">ISN</th><th class="num">NPS</th><th class="num">Abandono</th><th class="num">Duración mediana</th><th class="num">Dejan contacto</th></tr></thead><tbody>${
+    FLUJOS.filter((f) => base.some((r) => r.flujoClave === f)).map((f) => {
+      const b = base.filter((r) => r.flujoClave === f);
+      const c = b.filter((r) => r.completada);
+      const x = rs.filter((r) => r.flujoClave === f);
+      const of = x.filter((r) => r.acepta_ofertas === 'Sí' || r.acepta_ofertas === 'No');
+      const med = mediana(c.map((r) => Number(r.duracion_seg)));
+      return `<tr><td><span class="punto" style="background:${colorFlujo(f)}"></span>${escapar(f)}</td><td class="num">${x.length}</td><td class="num">${num(isn(x.map((r) => r.experiencia)).isn)}</td><td class="num">${num(nps(x.map((r) => r.nps)).nps)}</td><td class="num">${pct((b.length - c.length) / b.length)}</td><td class="num">${med === null ? '—' : Math.round(med) + ' s'}</td><td class="num">${of.length ? pct(of.filter((r) => r.acepta_ofertas === 'Sí').length / of.length) : 'No aplica'}</td></tr>`;
+    }).join('')
+  }</tbody></table>`;
+
+  // Ranking de locales con estado de la tablet
+  const ahora = Date.now();
+  const filasLocales = [...new Set(base.map((r) => r.local))].map((l) => {
+    const b = base.filter((r) => r.local === l);
+    const x = rs.filter((r) => r.local === l);
+    const ultima = Math.max(...b.map((r) => r.fecha.getTime()));
+    const horas = (ahora - ultima) / 36e5;
+    return { l, loc: locales[l] || {}, n: x.length, isn: isn(x.map((r) => r.experiencia)).isn, nps: nps(x.map((r) => r.nps)).nps, ab: (b.length - b.filter((r) => r.completada).length) / b.length, ultima, horas };
+  }).sort((a, b) => (b.isn === null ? -2 : b.isn) - (a.isn === null ? -2 : a.isn));
+  document.getElementById('t-locales').innerHTML = filasLocales.length ? `<table><thead><tr><th>#</th><th>Local</th><th>Nombre</th><th>Supervisor</th><th>Gerente de operaciones</th><th class="num">Respuestas</th><th class="num">ISN</th><th class="num">NPS</th><th class="num">Abandono</th><th>Última respuesta</th><th>Estado</th></tr></thead><tbody>${
+    filasLocales.map((f, i) => `<tr><td>${i + 1}</td><td><b>${escapar(f.l)}</b></td><td>${escapar(f.loc.nombre || (f.l === 'SIN-LOCAL' ? 'Tablet sin código de local' : 'No está en la hoja Locales'))}</td><td>${escapar(f.loc.supervisor || '—')}</td><td>${escapar(f.loc.gop || '—')}</td><td class="num">${f.n}</td><td class="num">${num(f.isn)}</td><td class="num">${num(f.nps)}</td><td class="num">${pct(f.ab)}</td><td>${new Date(f.ultima).toLocaleString('es-CL')}</td><td>${f.horas < 2 ? '<span class="estado ok">Activo</span>' : f.horas < 24 ? '<span class="estado alerta">Sin respuestas hace ' + Math.floor(f.horas) + ' h</span>' : '<span class="estado mal">Sin respuestas hace ' + Math.floor(f.horas / 24) + ' días</span>'}</td></tr>`).join('')
+  }</tbody></table>` : '<div class="vacio">Sin datos para este filtro</div>';
+
+  // Comentarios
+  const comentarios = rs.filter((r) => String(r.comentario || '').trim()).sort((a, b) => b.fecha - a.fecha).slice(0, 30);
+  document.getElementById('t-comentarios').innerHTML = comentarios.length ? `<table><thead><tr><th>Fecha</th><th>Flujo</th><th>Local</th><th>Experiencia</th><th class="num">NPS</th><th>Comentario</th></tr></thead><tbody>${
+    comentarios.map((r) => `<tr><td style="white-space:nowrap">${r.fecha.toLocaleString('es-CL')}</td><td style="white-space:nowrap"><span class="punto" style="background:${colorFlujo(r.flujoClave)}"></span>${escapar(r.flujoClave)}</td><td>${escapar(r.local)}</td><td style="white-space:nowrap">${escapar(r.experiencia)}</td><td class="num">${escapar(r.nps)}</td><td>${escapar(r.comentario)}</td></tr>`).join('')
+  }</tbody></table>` : '<div class="vacio">Sin comentarios para este filtro</div>';
+}
+
+function exportarCSV() {
+  const filas = filtradas(true);
+  const columnas = ['inicio', 'local', 'marca', 'flujo', 'completada', 'ultimo_paso', 'duracion_seg', 'experiencia', 'tipo_cliente', 'producto', 'calidad', 'exactitud', 'velocidad', 'amabilidad', 'limpieza', 'atributo_evaluado', 'motivos', 'nps', 'comentario', 'acepta_ofertas'];
+  const celda = (v) => '"' + String(v === undefined || v === null ? '' : v).replace(/"/g, '""') + '"';
+  const csv = [columnas.join(';')].concat(filas.map((r) => columnas.map((c) => celda(r[c])).join(';'))).join('\r\n');
+  const enlace = document.createElement('a');
+  enlace.href = URL.createObjectURL(new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' }));
+  enlace.download = 'respuestas-encuesta-' + diaDe(new Date()) + '.csv';
+  enlace.click();
+}
+
+['f-marca', 'f-flujo', 'f-gop', 'f-supervisor', 'f-local', 'f-periodo', 'f-completas'].forEach((id) => document.getElementById(id).addEventListener('change', pintar));
+document.getElementById('btn-actualizar').addEventListener('click', cargar);
+document.getElementById('btn-csv').addEventListener('click', exportarCSV);
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => todas.length && pintar());
+cargar();
+</script>
+</body>
+</html>
