@@ -1,0 +1,26 @@
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: #111111; overflow: hidden; }
+body { font-family: 'Fredoka', system-ui, sans-serif; -webkit-tap-highlight-color: transparent; user-select: none; }
+button { font-family: inherit; cursor: pointer; }
+input, textarea { user-select: text; }
+
+/* Escenario fijo de 1280x800 que se escala al tamaño de la pantalla */
+#escenario { position: absolute; left: 0; top: 0; width: 1280px; height: 800px; transform-origin: 0 0; overflow: hidden; background: #FFFFFF; }
+.pantalla { position: absolute; inset: 0; }
+.abs { position: absolute; }
+.centro { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+
+/* Zonas táctiles invisibles sobre las imágenes del flujo actual */
+.zona { position: absolute; background: transparent; border: none; border-radius: 18px; padding: 0; }
+.ver-zonas .zona { background: rgba(232, 23, 138, 0.22); }
+.zona:active { background: rgba(0, 0, 0, 0.08); }
+
+.campo { position: absolute; border: none; outline: none; background: #FFFFFF; font-family: 'Roboto', system-ui, sans-serif; font-size: 24px; color: #333333; padding: 0 16px; border-radius: 7px; }
+textarea.campo { padding: 14px 20px; resize: none; border-radius: 16px; }
+
+.cara { display: flex; flex-direction: column; align-items: center; gap: 16px; border: none; background: transparent; padding: 0; }
+.cara span { white-space: nowrap; }
+
+.volver-dk { position: absolute; right: 8px; top: 8px; height: 76px; padding: 0 22px; border: 3px solid #F26B0F; border-radius: 14px; background: #FFFFFF; font-size: 30px; font-weight: 700; letter-spacing: 1px; color: #F26B0F; }
+.volver-jj { position: absolute; right: 32px; top: 24px; height: 44px; padding: 0 18px; border: 3px solid #000000; background: #FFFFFF; font-family: 'Archivo', sans-serif; font-size: 14px; font-weight: 800; letter-spacing: 1px; color: #000000; }
+.menu-link { position: absolute; left: 12px; bottom: 6px; font-size: 12px; color: #8A8A8A; background: #FFFFFF; padding: 2px 6px; border-radius: 6px; text-decoration: underline; font-family: system-ui, sans-serif; }

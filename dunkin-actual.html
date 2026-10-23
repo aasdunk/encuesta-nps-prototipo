@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="robots" content="noindex, nofollow">
+<title>Dunkin · Flujo actual</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Roboto:wght@400;500&display=swap">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<div id="escenario"></div>
+<script src="js/config.js"></script>
+<script src="js/comun.js"></script>
+<script>
+// Flujo actual de Dunkin: cada paso es la captura de la tablet con zonas táctiles encima.
+// Las coordenadas están medidas sobre las imágenes originales de 1586 x 992 px.
+const K = 1280 / 1586;
+const esc = (a) => ({ x: Math.round(a[0] * K), y: Math.round(a[1] * K), w: Math.round(a[2] * K), h: Math.round(a[3] * K) });
+const ATRIBUTOS = ['calidad', 'exactitud', 'velocidad', 'amabilidad', 'limpieza'];
+
+const filaCaras = (centros, y0, y1) => centros.map((cx, i) => ({ r: [cx - 140, y0, 280, y1 - y0], label: CARAS[i], valor: CARAS[i] }));
+
+const PASOS = [
+  { img: '02-experiencia', alt: '¿Cómo fue tu experiencia hoy?', campo: 'experiencia', zonas: filaCaras([184, 488, 792, 1097, 1401], 430, 760) },
+  { img: '03-cliente-delivery', alt: 'Selecciona la opción que mejor te identifica', campo: 'tipo_cliente', volver: [1330, 30, 226, 90],
+    zonas: [{ r: [298, 532, 486, 133], label: 'Soy cliente', valor: 'Cliente' }, { r: [806, 532, 488, 133], label: 'Soy delivery', valor: 'Delivery', saltar: 3 }] },
+  { img: '04-tipo-producto', alt: 'Indica el tipo de producto', campo: 'producto', volver: [1340, 42, 216, 82],
+    zonas: [[34, 408, 495, 228, 'Donuts'], [549, 408, 489, 228, 'Bebidas calientes'], [1057, 408, 495, 228, 'Bebidas frías'], [269, 679, 512, 229, 'Sándwiches'], [804, 679, 512, 229, 'Muffins']].map((p) => ({ r: p.slice(0, 4), label: p[4], valor: p[4] })) },
+  { img: '05-calidad', alt: 'Satisfacción con la calidad', campo: 'calidad', volver: [1308, 34, 240, 94], zonas: filaCaras([162, 477, 793, 1109, 1425], 480, 830) },
+  { img: '06-exactitud-pedido', alt: 'Satisfacción con la exactitud del pedido', campo: 'exactitud', volver: [1324, 32, 231, 96], zonas: filaCaras([157, 472, 792, 1110, 1425], 515, 860) },
+  { img: '07-velocidad', alt: 'Satisfacción con la velocidad del servicio', campo: 'velocidad', volver: [1346, 55, 211, 79], zonas: filaCaras([158, 471, 789, 1108, 1425], 505, 845) },
+  { img: '08-amabilidad', alt: 'Satisfacción con la amabilidad del servicio', campo: 'amabilidad', volver: [1321, 40, 235, 91], zonas: filaCaras([173, 481, 790, 1098, 1408], 520, 860) },
+  { img: '09-limpieza', alt: 'Satisfacción con la limpieza', campo: 'limpieza', volver: [1333, 42, 221, 84], zonas: filaCaras([158, 471, 792, 1108, 1425], 480, 830) },
+  { img: '10-recomendacion', alt: '¿Recomendarías Dunkin a algún amigo o familiar?', campo: 'nps', volver: [1285, 32, 270, 99],
+    zonas: [88, 228, 369, 509, 650, 791, 932, 1073, 1213, 1354, 1495].map((cx, n) => ({ r: [cx - 64, 722, 128, 128], label: String(n), valor: n })) },
+  { img: '11-comentarios', alt: '¡Ayúdanos a mejorar! ¿Algún comentario?', volver: [1364, 37, 186, 73],
+    zonas: [{ r: [67, 634, 781, 111], label: 'Siguiente' }],
+    textos: [{ id: 'comentario', label: 'Comentario', r: [70, 418, 885, 180], area: true }] },
+  { img: '01-contacto', alt: 'Si deseas que te contactemos, ingresa tus datos', volver: [1352, 25, 210, 80],
+    zonas: [{ r: [1266, 838, 284, 95], label: 'Finalizar' }],
+    textos: [
+      { id: 'nombres', label: 'Nombres', r: [476, 535, 498, 71] },
+      { id: 'apellidos', label: 'Apellidos', r: [1011, 535, 531, 71] },
+      { id: 'email_usuario', label: 'Email: usuario', r: [476, 712, 461, 72] },
+      { id: 'email_dominio', label: 'Email: dominio', r: [1042, 712, 500, 72] }
+    ] }
+];
+const GRACIAS = PASOS.length;
+
+let estado;
+function reiniciarEstado() {
+  estado = { paso: 0, hist: [], reg: nuevoRegistro('Dunkin', 'Actual'), textos: {} };
+}
+
+const escenario = document.getElementById('escenario');
+if (new URLSearchParams(location.search).has('zonas')) escenario.classList.add('ver-zonas');
+
+function ir(n) {
+  estado.hist.push(estado.paso);
+  estado.paso = n;
+  estado.reg.ultimo_paso = n < GRACIAS ? PASOS[n].alt : 'Gracias';
+  if (n === GRACIAS) terminar(true);
+  pintar();
+}
+function volver() {
+  if (!estado.hist.length) return;
+  estado.paso = estado.hist.pop();
+  pintar();
+}
+
+function leerTextos() {
+  escenario.querySelectorAll('[data-texto]').forEach((el) => { estado.textos[el.dataset.texto] = el.value; });
+}
+
+function terminar(completa) {
+  const t = estado.textos;
+  estado.reg.comentario = t.comentario || '';
+  estado.reg.nombres = t.nombres || '';
+  estado.reg.apellidos = t.apellidos || '';
+  estado.reg.email = (t.email_usuario || t.email_dominio) ? `${t.email_usuario || ''}@${t.email_dominio || ''}` : '';
+  estado.reg.completada = completa;
+  enviarRegistro(estado.reg);
+}
+
+let temporizadorGracias = null;
+function pintar() {
+  clearTimeout(temporizadorGracias);
+  const n = estado.paso;
+  if (n === GRACIAS) {
+    escenario.innerHTML = `
+      <div class="pantalla" style="background: #CB2F63; color: #FFFFFF; display: flex; flex-direction: column; align-items: center; padding-top: 110px">
+        <h1 style="margin: 0; font-size: 130px; line-height: 1; font-weight: 700">¡GRACIAS!</h1>
+        <p style="margin: 14px 0 0; font-size: 28px; font-weight: 500">Tu opinión nos ayuda a mejorar</p>
+        <div class="abs" style="left: 0; bottom: -50px; width: 1280px; display: flex; justify-content: center; align-items: flex-end; gap: 24px">
+          <img src="img/productos/02-cafe-caliente.png" alt="" style="height: 350px">
+          <img src="img/productos/04-cafe-con-dona.png" alt="" style="height: 400px">
+          <img src="img/productos/01-bebida-rosada.png" alt="" style="height: 380px">
+          <img src="img/productos/05-cafe-crema-chocolate.png" alt="" style="height: 360px">
+        </div>
+        <button id="btn-inicio" class="abs" style="right: 24px; top: 24px; height: 56px; padding: 0 24px; border: 3px solid #FFFFFF; border-radius: 14px; background: transparent; font-size: 22px; font-weight: 700; letter-spacing: 1px; color: #FFFFFF">INICIO</button>
+      </div>`;
+    document.getElementById('btn-inicio').onclick = () => { reiniciarEstado(); pintar(); };
+    temporizadorGracias = setTimeout(() => { reiniciarEstado(); pintar(); }, (CONFIG.GRACIAS_SEG || 6) * 1000);
+    return;
+  }
+
+  const p = PASOS[n];
+  let html = `<img class="pantalla" src="img/pantallas/${p.img}.png" alt="${escaparHTML(p.alt)}" style="width: 1280px; height: 800px">`;
+  (p.textos || []).forEach((t) => {
+    const r = esc(t.r);
+    const estilo = `left: ${r.x}px; top: ${r.y}px; width: ${r.w}px; height: ${r.h}px`;
+    const valor = escaparHTML(estado.textos[t.id] || '');
+    html += t.area
+      ? `<textarea class="campo" data-texto="${t.id}" aria-label="${t.label}" maxlength="300" style="${estilo}">${valor}</textarea>`
+      : `<input class="campo" data-texto="${t.id}" aria-label="${t.label}" type="text" value="${valor}" autocomplete="off" style="${estilo}">`;
+  });
+  p.zonas.forEach((z, i) => {
+    const r = esc(z.r);
+    html += `<button class="zona" data-zona="${i}" aria-label="${escaparHTML(z.label)}" style="left: ${r.x}px; top: ${r.y}px; width: ${r.w}px; height: ${r.h}px"></button>`;
+  });
+  if (p.volver) {
+    const r = esc(p.volver);
+    html += `<button class="zona" data-volver aria-label="Volver" style="left: ${r.x}px; top: ${r.y}px; width: ${r.w}px; height: ${r.h}px"></button>`;
+  }
+  html += `<a class="menu-link" href="index.html">Menú del prototipo</a>`;
+  escenario.innerHTML = html;
+
+  escenario.querySelectorAll('[data-zona]').forEach((b) => {
+    b.onclick = () => {
+      const z = p.zonas[Number(b.dataset.zona)];
+      leerTextos();
+      if (p.campo) estado.reg[p.campo] = z.valor;
+      ir(z.saltar !== undefined ? z.saltar : n + 1);
+    };
+  });
+  const bv = escenario.querySelector('[data-volver]');
+  if (bv) bv.onclick = () => { leerTextos(); volver(); };
+  escenario.querySelectorAll('[data-texto]').forEach((el) => { el.oninput = () => { estado.textos[el.dataset.texto] = el.value; }; });
+  const primero = escenario.querySelector('[data-texto]');
+  if (primero) setTimeout(() => primero.focus(), 50);
+}
+
+const inactividad = crearInactividad(() => {
+  if (estado.paso > 0 && estado.paso < GRACIAS) { leerTextos(); terminar(false); }
+  reiniciarEstado();
+  pintar();
+});
+
+reiniciarEstado();
+ajustarEscenario();
+pintar();
+inactividad.reiniciar();
+</script>
+</body>
+</html>

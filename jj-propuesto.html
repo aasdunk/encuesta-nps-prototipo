@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="robots" content="noindex, nofollow">
+<title>Jimmy John's · Flujo propuesto</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@500;700;800&display=swap">
+<link rel="stylesheet" href="css/app.css">
+<style>
+#escenario { font-family: 'Archivo', system-ui, sans-serif; color: #000000; }
+.anton { font-family: 'Anton', sans-serif; font-weight: 400; letter-spacing: 1px; }
+.rojo { color: #EA0029; }
+.cara span { font-size: 15px; font-weight: 800; letter-spacing: 1px; color: #000000; }
+.prod { height: 104px; border: 3px solid #000000; background: #FFFFFF; font-family: 'Anton', sans-serif; font-size: 30px; letter-spacing: 1px; color: #000000; }
+.prod:active { background: #EA0029; color: #FFFFFF; border-color: #EA0029; }
+.motivo { height: 92px; border: 3px solid #000000; background: #FFFFFF; font-family: inherit; font-size: 19px; font-weight: 800; letter-spacing: 0.5px; color: #000000; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 0 20px; text-align: left; }
+.motivo.sel { background: #EA0029; border-color: #EA0029; color: #FFFFFF; }
+.motivo .check { display: none; }
+.motivo.sel .check { display: block; }
+.circulo { width: 94px; height: 94px; border-radius: 999px; border: none; font-family: 'Anton', sans-serif; font-size: 44px; color: #FFFFFF; }
+.dato { position: absolute; left: 0; bottom: 16px; width: 1280px; display: flex; justify-content: center; }
+.dato span { background: #000000; color: #FFFFFF; padding: 8px 16px; font-size: 13px; font-weight: 700; letter-spacing: 0.5px; border: 2px solid #FFFFFF; }
+</style>
+</head>
+<body>
+<div id="escenario"></div>
+<script src="js/config.js"></script>
+<script src="js/comun.js"></script>
+<script>
+const MAYUS = CARAS.map((c) => c.toUpperCase());
+const ATRIBUTOS = [
+  { campo: 'calidad', titulo: 'CALIDAD', entrada: '¿QUÉ TAN SATISFECHA/O ESTÁS CON', pregunta: 'LA CALIDAD DE NUESTROS PRODUCTOS?' },
+  { campo: 'exactitud', titulo: 'EXACTITUD', entrada: 'EN ESTA VISITA, ¿QUÉ TAN SATISFECHA/O ESTÁS CON', pregunta: 'LA EXACTITUD DEL PEDIDO?' },
+  { campo: 'velocidad', titulo: 'VELOCIDAD', entrada: 'EN BASE A ESTA VISITA, ¿QUÉ TAN SATISFECHA/O ESTÁS CON', pregunta: 'LA VELOCIDAD DEL SERVICIO?' },
+  { campo: 'amabilidad', titulo: 'AMABILIDAD', entrada: 'EN BASE A ESTA VISITA, ¿QUÉ TAN SATISFECHA/O ESTÁS CON', pregunta: 'LA AMABILIDAD DEL SERVICIO?' },
+  { campo: 'limpieza', titulo: 'LIMPIEZA', entrada: '¿QUÉ TAN SATISFECHA/O', pregunta: 'ESTÁS CON LA LIMPIEZA?' }
+];
+const PRODUCTOS = ['SÁNDWICH', 'WRAP', 'PAPAS Y SNACKS', 'POSTRE', 'BEBIDA', 'VARIOS'];
+const MOTIVOS = ['RAPIDEZ DE ATENCIÓN', 'AMABILIDAD DEL PERSONAL', 'CALIDAD DEL SÁNDWICH', 'LIMPIEZA DEL LOCAL', 'PEDIDO INCOMPLETO O INCORRECTO', 'OTRO MOTIVO'];
+const NPS_COLORES = ['#2A1414', '#3E1515', '#5A1414', '#7A1212', '#9A0E18', '#B8081F', '#D10024', '#EA0029', '#8A8A8A', '#2E7D46', '#1D5C33'];
+const DATOS = ['EXPERIENCIA GENERAL (1 A 5) → ISN', 'TIPO DE CLIENTE Y PRODUCTO → ISN POR PRODUCTO Y CANAL', 'NOTA DE 1 ATRIBUTO AL AZAR → ISN POR ATRIBUTO', 'MOTIVOS DE LA INSATISFACCIÓN → QUÉ CORREGIR', 'NOTA DE 0 A 10 → NPS', 'COMENTARIO LIBRE (OPCIONAL)'];
+const NOMBRES_PASO = ['Experiencia', 'Producto', 'Atributo', 'Motivos', 'NPS', 'Comentario', 'Gracias'];
+const verDatos = new URLSearchParams(location.search).has('datos');
+const cap = (t) => t.charAt(0) + t.slice(1).toLowerCase();
+
+const escenario = document.getElementById('escenario');
+let estado;
+function reiniciarEstado() {
+  estado = { paso: 0, hist: [], reg: nuevoRegistro("Jimmy John's", 'Propuesto'), exp: null, attr: 0, sel: {}, comentario: '' };
+}
+const negativo = () => estado.exp !== null && estado.exp >= 2;
+function ir(n) {
+  estado.hist.push(estado.paso);
+  estado.paso = n;
+  estado.reg.ultimo_paso = NOMBRES_PASO[n];
+  if (n === 6) terminar(true);
+  pintar();
+}
+function volver() { if (estado.hist.length) { estado.paso = estado.hist.pop(); pintar(); } }
+function terminar(completa) {
+  const elegidos = MOTIVOS.filter((o, i) => estado.sel[i]).map(cap);
+  estado.reg.motivos = negativo() ? elegidos.join(', ') : '';
+  estado.reg.comentario = estado.comentario;
+  estado.reg.completada = completa;
+  enviarRegistro(estado.reg);
+}
+
+function cabecera(n) {
+  const total = negativo() ? 6 : 5;
+  const numero = [1, 2, 3, 4, negativo() ? 5 : 4, total][n];
+  return `<img class="abs" src="img/marcas/jj-logo.webp" alt="Jimmy John's" style="left: 40px; top: 30px; width: 216px; height: 36px">
+    <div class="abs" style="left: 0; top: 30px; width: 1280px; display: flex; justify-content: center"><span style="background: #000000; color: #FFFFFF; padding: 8px 16px; font-size: 14px; font-weight: 800; letter-spacing: 1px">PREGUNTA ${numero} DE ${total}</span></div>
+    ${n >= 1 && n <= 4 ? '<button class="volver-jj" data-accion="volver">VOLVER</button>' : ''}`;
+}
+const filaCaras = () => `<div style="display: flex; gap: 52px">${MAYUS.map((c, i) => `<button class="cara" data-cara="${i}" aria-label="${c}">${caraSVG(i, 150, true)}<span>${c}</span></button>`).join('')}</div>`;
+
+let temporizadorGracias = null;
+function pintar() {
+  clearTimeout(temporizadorGracias);
+  const n = estado.paso;
+  const a = ATRIBUTOS[estado.attr];
+  let html = '';
+  const cuerpo = (contenido) => `${cabecera(n)}<div class="pantalla centro" style="padding: 70px 80px">${contenido}</div>`;
+  if (n === 0) {
+    html = `<img class="abs" src="img/productos/07-sandwich.png" alt="" style="right: -60px; bottom: -50px; width: 320px; transform: rotate(-6deg)">` + cuerpo(`
+      <h1 class="anton" style="margin: 0 0 40px; font-size: 76px; line-height: 1.02; text-align: center">¿CÓMO FUE TU<br><span class="rojo">EXPERIENCIA HOY?</span></h1>${filaCaras()}`);
+  } else if (n === 1) {
+    html = cuerpo(`
+      <h1 class="anton" style="margin: 0; font-size: 72px; line-height: 1.02; text-align: center">¿QUÉ <span class="rojo">COMPRASTE HOY?</span></h1>
+      <p style="margin: 10px 0 32px; font-size: 20px; font-weight: 700; color: #3D3D3D">Toca tu producto principal</p>
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; width: 980px">${PRODUCTOS.map((p, i) => `<button class="prod" data-producto="${i}">${p}</button>`).join('')}</div>
+      <button data-accion="delivery" style="margin-top: 28px; height: 56px; padding: 0 24px; border: none; background: #000000; font-size: 16px; font-weight: 800; letter-spacing: 1px; color: #FFFFFF">SOY REPARTIDOR (DELIVERY) →</button>`);
+  } else if (n === 2) {
+    html = cuerpo(`
+      <span style="background: #EA0029; color: #FFFFFF; padding: 6px 16px; font-size: 16px; font-weight: 800; letter-spacing: 1px; margin-bottom: 14px">${a.titulo}</span>
+      <h1 class="anton" style="margin: 0 0 36px; max-width: 1040px; font-size: 52px; line-height: 1.08; text-align: center">${a.entrada} <span class="rojo">${a.pregunta}</span></h1>${filaCaras()}`);
+  } else if (n === 3) {
+    html = cuerpo(`
+      <h1 class="anton" style="margin: 0; font-size: 60px; line-height: 1.05; text-align: center">CUÉNTANOS QUÉ PASÓ.<br><span class="rojo">¿QUÉ PODEMOS MEJORAR?</span></h1>
+      <p style="margin: 10px 0 28px; font-size: 20px; font-weight: 700; color: #3D3D3D">Puedes elegir más de una opción</p>
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; width: 1040px">${MOTIVOS.map((m, i) => `<button class="motivo${estado.sel[i] ? ' sel' : ''}" data-motivo="${i}" aria-pressed="${!!estado.sel[i]}"><span>${m}</span><svg class="check" width="30" height="30" viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" fill="#FFFFFF"/><path d="M6.5 12.5l3.5 3.5L17.5 8.5" fill="none" stroke="#EA0029" stroke-width="2.8" stroke-linecap="square"/></svg></button>`).join('')}</div>
+      <div style="width: 1040px; display: flex; justify-content: flex-end; gap: 12px; margin-top: 28px">
+        <button data-accion="siguiente" style="height: 64px; padding: 0 24px; border: none; background: transparent; font-size: 18px; font-weight: 800; letter-spacing: 1px; color: #000000; text-decoration: underline">OMITIR</button>
+        <button data-accion="siguiente" class="anton" style="height: 68px; padding: 0 48px; border: none; background: #EA0029; font-size: 28px; color: #FFFFFF">CONTINUAR</button>
+      </div>`);
+  } else if (n === 4) {
+    html = cuerpo(`
+      <h1 class="anton" style="margin: 0 0 52px; max-width: 1100px; font-size: 66px; line-height: 1.05; text-align: center">¿RECOMENDARÍAS <span class="rojo">JIMMY JOHN'S</span><br>A ALGÚN AMIGO O FAMILIAR?</h1>
+      <div style="width: 1176px; display: flex; justify-content: space-between; margin-bottom: 12px">
+        <span style="background: #000000; color: #FFFFFF; padding: 8px 14px; font-size: 14px; font-weight: 800; letter-spacing: 1px">NO RECOMENDARÍA</span>
+        <span style="background: #EA0029; color: #FFFFFF; padding: 8px 14px; font-size: 14px; font-weight: 800; letter-spacing: 1px">RECOMENDARÍA TOTALMENTE</span>
+      </div>
+      <div style="display: flex; gap: 14px">${NPS_COLORES.map((c, i) => `<button class="circulo" data-nps="${i}" style="background: ${c}">${i}</button>`).join('')}</div>`);
+  } else if (n === 5) {
+    html = `
+      <div class="pantalla" style="background: #EA0029; color: #FFFFFF">
+        <div class="abs" style="left: 40px; top: 24px; background: #FFFFFF; padding: 8px 12px"><img src="img/marcas/jj-logo.webp" alt="Jimmy John's" style="display: block; width: 216px; height: 36px"></div>
+        <img class="abs" src="img/productos/07-sandwich.png" alt="" style="right: -80px; bottom: -40px; width: 460px; transform: rotate(-8deg)">
+        <div class="abs" style="left: 120px; top: 150px; width: 820px; display: flex; flex-direction: column; gap: 24px">
+          <label for="comentario" class="anton" style="font-size: 60px; line-height: 1.02">¡AYÚDANOS A MEJORAR!<br><span style="color: #000000">¿ALGÚN COMENTARIO?</span></label>
+          <textarea id="comentario" class="campo" maxlength="300" style="position: static; width: 820px; height: 190px; border-radius: 0; font-size: 26px; color: #000000">${escaparHTML(estado.comentario)}</textarea>
+          <div style="display: flex; gap: 16px">
+            <button data-accion="siguiente" class="anton" style="height: 72px; flex: 1; border: none; background: #000000; font-size: 30px; color: #FFFFFF">ENVIAR</button>
+            <button data-accion="siguiente" style="height: 72px; padding: 0 28px; border: none; background: transparent; font-size: 20px; font-weight: 800; letter-spacing: 1px; color: #FFFFFF; text-decoration: underline">OMITIR</button>
+          </div>
+        </div>
+      </div>`;
+  } else {
+    const r = estado.reg;
+    const filas = [
+      ['Experiencia', r.experiencia], ['Cliente', r.tipo_cliente], ['Producto', r.producto],
+      ['Atributo al azar', `${cap(a.titulo)}: ${(r[a.campo] || '').toLowerCase()}`],
+      ['Motivos', negativo() ? (r.motivos || 'Sin selección') : 'No aplica'], ['NPS', r.nps], ['Comentario', r.comentario || 'Sin comentario']
+    ];
+    html = `
+      <div class="pantalla centro" style="background: #EA0029; color: #FFFFFF; gap: 14px; padding: 40px">
+        <svg width="240" height="32" viewBox="0 0 300 40" aria-hidden="true"><path d="M20 2l5.2 12 12.8 1-9.8 8.4 3 12.6L20 29.2 8.8 36l3-12.6L2 15l12.8-1zM85 2l5.2 12 12.8 1-9.8 8.4 3 12.6L85 29.2 73.8 36l3-12.6L67 15l12.8-1zM150 2l5.2 12 12.8 1-9.8 8.4 3 12.6L150 29.2 138.8 36l3-12.6L132 15l12.8-1zM215 2l5.2 12 12.8 1-9.8 8.4 3 12.6L215 29.2 203.8 36l3-12.6L197 15l12.8-1zM280 2l5.2 12 12.8 1-9.8 8.4 3 12.6L280 29.2 268.8 36l3-12.6L262 15l12.8-1z" fill="#000000"/></svg>
+        <h1 class="anton" style="margin: 0; font-size: 120px; line-height: 1">¡GRACIAS!</h1>
+        <p style="margin: 0; font-size: 22px; font-weight: 800; letter-spacing: 1px; color: #000000">TU OPINIÓN NOS AYUDA A MEJORAR</p>
+        ${verDatos
+          ? `<div style="margin-top: 18px; width: 820px; background: #FFFFFF; color: #000000; padding: 18px 24px"><p style="margin: 0 0 10px; font-size: 13px; font-weight: 800; letter-spacing: 1.5px; color: #EA0029">REGISTRO QUE QUEDA EN LA BASE DE DATOS</p><div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 28px">${filas.map((f) => `<div style="font-size: 15px"><b>${f[0]}:</b> ${escaparHTML(f[1] === undefined ? '' : f[1])}</div>`).join('')}</div></div>`
+          : '<img src="img/productos/07-sandwich.png" alt="" style="margin-top: 20px; width: 400px">'}
+        <button data-accion="inicio" class="abs" style="right: 32px; top: 24px; height: 44px; padding: 0 18px; border: 3px solid #FFFFFF; background: transparent; font-size: 14px; font-weight: 800; letter-spacing: 1px; color: #FFFFFF">INICIO</button>
+      </div>`;
+    temporizadorGracias = setTimeout(() => { reiniciarEstado(); pintar(); }, (CONFIG.GRACIAS_SEG || 6) * 1000 + (verDatos ? 6000 : 0));
+  }
+  if (verDatos && n <= 5) html += `<div class="dato"><span>DATO QUE SE GUARDA · ${DATOS[n]}</span></div>`;
+  escenario.innerHTML = html + '<a class="menu-link" href="index.html">Menú del prototipo</a>';
+
+  escenario.querySelectorAll('[data-cara]').forEach((b) => b.onclick = () => {
+    const i = Number(b.dataset.cara);
+    if (n === 0) {
+      estado.exp = i;
+      estado.reg.experiencia = CARAS[i];
+      estado.sel = {};
+      ir(1);
+    } else {
+      ['calidad', 'exactitud', 'velocidad', 'amabilidad', 'limpieza'].forEach((k) => { estado.reg[k] = ''; });
+      estado.reg[a.campo] = CARAS[i];
+      estado.reg.atributo_evaluado = cap(a.titulo);
+      ir(negativo() ? 3 : 4);
+    }
+  });
+  escenario.querySelectorAll('[data-producto]').forEach((b) => b.onclick = () => {
+    estado.reg.tipo_cliente = 'Cliente';
+    estado.reg.producto = cap(PRODUCTOS[Number(b.dataset.producto)]);
+    estado.attr = Math.floor(Math.random() * 5);
+    ir(2);
+  });
+  escenario.querySelectorAll('[data-motivo]').forEach((b) => b.onclick = () => {
+    const i = Number(b.dataset.motivo);
+    estado.sel[i] = !estado.sel[i];
+    b.classList.toggle('sel', estado.sel[i]);
+    b.setAttribute('aria-pressed', String(estado.sel[i]));
+  });
+  escenario.querySelectorAll('[data-nps]').forEach((b) => b.onclick = () => { estado.reg.nps = Number(b.dataset.nps); ir(5); });
+  const ta = document.getElementById('comentario');
+  if (ta) { ta.oninput = () => { estado.comentario = ta.value; }; setTimeout(() => ta.focus(), 50); }
+  escenario.querySelectorAll('[data-accion]').forEach((b) => b.onclick = () => {
+    const acc = b.dataset.accion;
+    if (acc === 'volver') volver();
+    else if (acc === 'siguiente') ir(n + 1);
+    else if (acc === 'delivery') {
+      estado.reg.tipo_cliente = 'Delivery';
+      estado.reg.producto = 'No aplica';
+      estado.attr = Math.random() < 0.5 ? 1 : 2;
+      ir(2);
+    } else if (acc === 'inicio') { reiniciarEstado(); pintar(); }
+  });
+}
+
+const inactividad = crearInactividad(() => {
+  if (estado.paso > 0 && estado.paso < 6) terminar(false);
+  reiniciarEstado();
+  pintar();
+});
+reiniciarEstado();
+ajustarEscenario();
+pintar();
+inactividad.reiniciar();
+</script>
+</body>
+</html>

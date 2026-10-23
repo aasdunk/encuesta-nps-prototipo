@@ -1,0 +1,85 @@
+// Funciones compartidas por los tres flujos: escalado de pantalla, registro de respuestas,
+// envío a Google Sheets, inactividad y dibujo de caritas.
+
+const CAMPOS_REGISTRO = [
+  'id', 'marca', 'flujo', 'inicio', 'fin', 'duracion_seg', 'completada', 'ultimo_paso',
+  'experiencia', 'tipo_cliente', 'producto',
+  'calidad', 'exactitud', 'velocidad', 'amabilidad', 'limpieza', 'atributo_evaluado',
+  'motivos', 'nps', 'comentario', 'nombres', 'apellidos', 'email', 'dispositivo'
+];
+
+const CARAS = ['Muy satisfecho', 'Satisfecho', 'Indiferente', 'Insatisfecho', 'Muy insatisfecho'];
+
+function ajustarEscenario() {
+  const esc = document.getElementById('escenario');
+  const s = Math.min(window.innerWidth / 1280, window.innerHeight / 800);
+  esc.style.transform = `scale(${s})`;
+  esc.style.left = `${(window.innerWidth - 1280 * s) / 2}px`;
+  esc.style.top = `${(window.innerHeight - 800 * s) / 2}px`;
+}
+window.addEventListener('resize', ajustarEscenario);
+
+function nuevoId() {
+  if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+  return Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
+}
+
+function nuevoRegistro(marca, flujo) {
+  return { id: nuevoId(), marca, flujo, inicio: new Date().toISOString(), completada: false, ultimo_paso: '' };
+}
+
+// Guarda una copia local y envía la respuesta a Google Sheets.
+function enviarRegistro(reg) {
+  const r = Object.assign({}, reg);
+  r.fin = new Date().toISOString();
+  r.duracion_seg = Math.round((Date.parse(r.fin) - Date.parse(r.inicio)) / 1000);
+  r.dispositivo = navigator.userAgent;
+  const fila = {};
+  CAMPOS_REGISTRO.forEach((k) => { fila[k] = r[k] === undefined || r[k] === null ? '' : r[k]; });
+
+  try {
+    const cola = JSON.parse(localStorage.getItem('encuesta_respuestas') || '[]');
+    cola.push(fila);
+    localStorage.setItem('encuesta_respuestas', JSON.stringify(cola.slice(-300)));
+  } catch (e) { /* sin almacenamiento local */ }
+
+  const url = window.CONFIG && window.CONFIG.APPS_SCRIPT_URL;
+  if (!url) return;
+  const cuerpo = JSON.stringify(fila);
+  // text/plain evita la consulta previa CORS; Apps Script lee el JSON igual
+  fetch(url, { method: 'POST', mode: 'no-cors', keepalive: true, headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: cuerpo })
+    .catch(() => { if (navigator.sendBeacon) navigator.sendBeacon(url, new Blob([cuerpo], { type: 'text/plain' })); });
+}
+
+// Llama a alTerminar si no hay toques ni teclas durante CONFIG.INACTIVIDAD_SEG.
+function crearInactividad(alTerminar) {
+  let t = null;
+  const reiniciar = () => {
+    clearTimeout(t);
+    t = setTimeout(alTerminar, (window.CONFIG.INACTIVIDAD_SEG || 45) * 1000);
+  };
+  ['pointerdown', 'keydown', 'input'].forEach((ev) => document.addEventListener(ev, reiniciar, true));
+  return { reiniciar, detener: () => clearTimeout(t) };
+}
+
+const COLORES_CARA = [
+  ['#5BE39A', '#22C06A', '#139E52'],
+  ['#CFF07A', '#A9DE3A', '#8CC22A'],
+  ['#FFD98A', '#FFC04D', '#F2A730'],
+  ['#FF9A5A', '#FF6A13', '#E5560A'],
+  ['#FF8A8A', '#FF4545', '#E03232']
+];
+const BOCAS = ['M34 66 Q60 96 86 66', 'M38 70 Q60 90 82 70', 'M36 76 L84 76', 'M42 84 Q60 68 78 84', 'M38 88 Q60 62 82 88'];
+
+function caraSVG(i, tam, rojoMarca) {
+  const c = (rojoMarca && i === 4) ? ['#FF7A86', '#EA0029', '#B0001F'] : COLORES_CARA[i];
+  const id = 'g' + i + Math.random().toString(36).slice(2, 7);
+  const ojos = i === 0
+    ? '<path d="M30 46 Q38 38 46 46 M74 46 Q82 38 90 46" fill="none" stroke="#1A1A1A" stroke-width="5" stroke-linecap="round"/>'
+    : '<ellipse cx="44" cy="48" rx="4" ry="6" fill="#1A1A1A"/><ellipse cx="76" cy="48" rx="4" ry="6" fill="#1A1A1A"/>';
+  return `<svg width="${tam}" height="${tam}" viewBox="0 0 120 120" aria-hidden="true"><defs><radialGradient id="${id}" cx="35%" cy="28%" r="75%"><stop offset="0%" stop-color="${c[0]}"/><stop offset="60%" stop-color="${c[1]}"/><stop offset="100%" stop-color="${c[2]}"/></radialGradient></defs><circle cx="60" cy="60" r="58" fill="url(#${id})"/>${ojos}<path d="${BOCAS[i]}" fill="none" stroke="#1A1A1A" stroke-width="7" stroke-linecap="round"/></svg>`;
+}
+
+function escaparHTML(t) {
+  return String(t).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
