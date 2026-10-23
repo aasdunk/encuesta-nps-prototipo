@@ -42,11 +42,11 @@
     --serie-1: #3987e5;
     --serie-2: #d95926;
     --serie-3: #199e70;
-    --div-pos-2: #3987e5;
-    --div-pos-1: #1c5cab;
-    --div-neutro: #4a4a46;
-    --div-neg-1: #8f3a3a;
-    --div-neg-2: #e66767;
+    --div-pos-2: #6ea6ee;
+    --div-pos-1: #2f5d93;
+    --div-neutro: #5a5a55;
+    --div-neg-1: #a14a4a;
+    --div-neg-2: #ec7b7b;
   }
 }
 * { box-sizing: border-box; }
@@ -65,7 +65,7 @@ h1 { margin: 0; font-size: 26px; font-weight: 800; }
 .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin-bottom: 16px; }
 .kpi { background: var(--superficie); border: 1px solid var(--borde); border-radius: 14px; padding: 14px 16px; }
 .kpi .t { font-size: 12px; font-weight: 700; color: var(--texto-2); text-transform: uppercase; letter-spacing: 0.5px; }
-.kpi .v { font-size: 34px; font-weight: 800; margin-top: 6px; font-variant-numeric: tabular-nums; }
+.kpi .v { font-size: 34px; font-weight: 800; margin-top: 6px; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .kpi .d { font-size: 13px; color: var(--texto-3); margin-top: 2px; }
 .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 560px), 1fr)); gap: 16px; margin-bottom: 16px; }
 .card { background: var(--superficie); border: 1px solid var(--borde); border-radius: 14px; padding: 16px; min-width: 0; }
@@ -77,7 +77,8 @@ h1 { margin: 0; font-size: 26px; font-weight: 800; }
 .tabla { overflow-x: auto; }
 table { width: 100%; border-collapse: collapse; font-size: 14px; }
 th { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--texto-2); border-bottom: 1px solid var(--borde); padding: 8px; white-space: nowrap; }
-td { border-bottom: 1px solid var(--grilla); padding: 8px; vertical-align: top; font-variant-numeric: tabular-nums; }
+td { border-bottom: 1px solid var(--grilla); padding: 8px; vertical-align: top; font-variant-numeric: tabular-nums; white-space: nowrap; }
+td.texto { white-space: normal; min-width: 260px; }
 td.num, th.num { text-align: right; }
 .punto { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: middle; }
 .estado { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; white-space: nowrap; }
@@ -362,7 +363,7 @@ function pintar() {
   });
   const productos = {};
   rs.forEach((r) => String(r.producto || '').split(',').map((p) => p.trim()).filter((p) => p && p !== 'No aplica').forEach((p) => { (productos[p] = productos[p] || []).push(r.experiencia); }));
-  const listaProductos = Object.entries(productos).map(([p, v]) => ({ p, x: isn(v) })).sort((a, b) => (b.x.isn || -2) - (a.x.isn || -2));
+  const listaProductos = Object.entries(productos).map(([p, v]) => ({ p, x: isn(v) })).sort((a, b) => b.x.isn - a.x.isn);
   grafico('g-productos', {
     type: 'bar',
     data: { labels: listaProductos.map((p) => `${p.p} (${p.x.n})`), datasets: [barras({ label: 'ISN', backgroundColor: css('--serie-1'), data: listaProductos.map((p) => Math.round(p.x.isn * 100)) })] },
@@ -426,7 +427,7 @@ function pintar() {
   // Comentarios
   const comentarios = rs.filter((r) => String(r.comentario || '').trim()).sort((a, b) => b.fecha - a.fecha).slice(0, 30);
   document.getElementById('t-comentarios').innerHTML = comentarios.length ? `<table><thead><tr><th>Fecha</th><th>Flujo</th><th>Local</th><th>Experiencia</th><th class="num">NPS</th><th>Comentario</th></tr></thead><tbody>${
-    comentarios.map((r) => `<tr><td style="white-space:nowrap">${r.fecha.toLocaleString('es-CL')}</td><td style="white-space:nowrap"><span class="punto" style="background:${colorFlujo(r.flujoClave)}"></span>${escapar(r.flujoClave)}</td><td>${escapar(r.local)}</td><td style="white-space:nowrap">${escapar(r.experiencia)}</td><td class="num">${escapar(r.nps)}</td><td>${escapar(r.comentario)}</td></tr>`).join('')
+    comentarios.map((r) => `<tr><td style="white-space:nowrap">${r.fecha.toLocaleString('es-CL')}</td><td style="white-space:nowrap"><span class="punto" style="background:${colorFlujo(r.flujoClave)}"></span>${escapar(r.flujoClave)}</td><td>${escapar(r.local)}</td><td style="white-space:nowrap">${escapar(r.experiencia)}</td><td class="num">${escapar(r.nps)}</td><td class="texto">${escapar(r.comentario)}</td></tr>`).join('')
   }</tbody></table>` : '<div class="vacio">Sin comentarios para este filtro</div>';
 }
 
