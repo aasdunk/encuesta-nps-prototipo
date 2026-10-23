@@ -10,8 +10,53 @@ const CAMPOS_REGISTRO = [
 
 const CARAS = ['Muy satisfecho', 'Satisfecho', 'Indiferente', 'Insatisfecho', 'Muy insatisfecho'];
 
+// En computador o celular la encuesta se muestra dentro de un marco de tablet.
+// En una tablet real (táctil y pantalla de 600 px o más) va a pantalla completa.
+// ?marco fuerza el marco y ?kiosco lo quita.
+const MARCO = { ancho: 1460, alto: 920, bordeX: 90, bordeY: 60, margen: 24 };
+
+function usarMarco() {
+  const q = new URLSearchParams(location.search);
+  if (q.has('marco')) return true;
+  if (q.has('kiosco')) return false;
+  const tabletReal = window.matchMedia('(pointer: coarse)').matches && Math.min(screen.width, screen.height) >= 600;
+  return !tabletReal;
+}
+
+function armarMarco(esc) {
+  const marco = document.createElement('div');
+  marco.id = 'marco-tablet';
+  marco.innerHTML = '<span class="tablet-boton" aria-hidden="true"></span><span class="tablet-camara" aria-hidden="true"></span>';
+  esc.parentNode.insertBefore(marco, esc);
+  marco.appendChild(esc);
+  document.body.classList.add('con-marco');
+  // Fuera de la tablet, el acceso al menú del prototipo (salvo en el propio menú)
+  if (!/(\/|index\.html)$/.test(location.pathname)) {
+    const enlace = document.createElement('a');
+    enlace.className = 'menu-fuera';
+    enlace.href = 'index.html';
+    enlace.textContent = 'Menú del prototipo';
+    document.body.appendChild(enlace);
+  }
+  return marco;
+}
+
 function ajustarEscenario() {
   const esc = document.getElementById('escenario');
+  if (usarMarco()) {
+    const marco = document.getElementById('marco-tablet') || armarMarco(esc);
+    const reservaArriba = document.querySelector('.menu-fuera') ? 64 : 0;
+    const anchoLibre = window.innerWidth - MARCO.margen * 2;
+    const altoLibre = window.innerHeight - MARCO.margen * 2 - reservaArriba;
+    const s = Math.min(anchoLibre / MARCO.ancho, altoLibre / MARCO.alto);
+    marco.style.transform = `scale(${s})`;
+    marco.style.left = `${(window.innerWidth - MARCO.ancho * s) / 2}px`;
+    marco.style.top = `${reservaArriba + MARCO.margen + (altoLibre - MARCO.alto * s) / 2}px`;
+    esc.style.transform = 'none';
+    esc.style.left = `${MARCO.bordeX}px`;
+    esc.style.top = `${MARCO.bordeY}px`;
+    return;
+  }
   const s = Math.min(window.innerWidth / 1280, window.innerHeight / 800);
   esc.style.transform = `scale(${s})`;
   esc.style.left = `${(window.innerWidth - 1280 * s) / 2}px`;

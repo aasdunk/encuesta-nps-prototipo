@@ -30,3 +30,14 @@ textarea.campo { padding: 14px 20px; resize: none; border-radius: 16px; }
 .volver-jj { position: absolute; z-index: 10; right: 32px; top: 24px; height: 44px; padding: 0 18px; border: 3px solid #000000; background: #FFFFFF; font-family: 'Archivo', sans-serif; font-size: 14px; font-weight: 800; letter-spacing: 1px; color: #000000; }
 .menu-link { position: absolute; left: 16px; bottom: 14px; z-index: 5; display: flex; align-items: center; gap: 8px; height: 44px; padding: 0 18px; font-size: 18px; font-weight: 600; color: #333333; background: rgba(255, 255, 255, 0.92); border: 2px solid #D0D0D0; border-radius: 999px; text-decoration: none; font-family: system-ui, sans-serif; }
 .menu-link::before { content: '←'; font-size: 20px; }
+
+/* Marco de tablet para ver el prototipo en computador o celular */
+body.con-marco { background: radial-gradient(ellipse at 50% 40%, #F4F3F0 0%, #DCDAD5 100%); }
+#marco-tablet { position: absolute; width: 1460px; height: 920px; transform-origin: 0 0; border-radius: 64px; background: linear-gradient(145deg, #2B2B2B 0%, #0E0E0E 55%, #1A1A1A 100%); box-shadow: 0 0 0 3px #C9C4BB, 0 0 0 5px #8F8A82, 0 40px 80px rgba(0, 0, 0, 0.35), 0 12px 24px rgba(0, 0, 0, 0.25), inset 0 0 0 2px #3A3A3A; }
+#marco-tablet::before { content: ''; position: absolute; right: 180px; top: -9px; width: 90px; height: 6px; border-radius: 4px 4px 0 0; background: #8F8A82; }
+#marco-tablet #escenario { border-radius: 6px; box-shadow: 0 0 0 2px #000000; }
+.tablet-boton { position: absolute; left: 23px; top: 50%; width: 44px; height: 44px; margin-top: -22px; border-radius: 50%; border: 3px solid #3C3C3C; background: radial-gradient(circle, #151515 0%, #0B0B0B 100%); }
+.tablet-camara { position: absolute; right: 41px; top: 50%; width: 10px; height: 10px; margin-top: -5px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #3B4A6B 0%, #0A0A0A 70%); }
+body.con-marco #escenario .menu-link { display: none; }
+.menu-fuera { position: absolute; left: 24px; top: 18px; z-index: 5; display: flex; align-items: center; gap: 8px; height: 44px; padding: 0 20px; font: 600 17px system-ui, sans-serif; color: #1F1F1F; background: #FFFFFF; border: 1px solid #CFCCC5; border-radius: 999px; text-decoration: none; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08); }
+.menu-fuera::before { content: '←'; font-size: 19px; }
