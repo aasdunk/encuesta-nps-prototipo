@@ -7,7 +7,7 @@
 <title>Dunkin · Flujo propuesto</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap">
-<link rel="stylesheet" href="css/app.css?v=6">
+<link rel="stylesheet" href="css/app.css?v=7">
 <style>
 .logo-dk { position: absolute; width: 170px; height: 36px; overflow: hidden; }
 .logo-dk img { position: absolute; left: 0; top: -11px; width: 260px; height: 57px; }
@@ -20,8 +20,8 @@
 </head>
 <body>
 <div id="escenario" style="color: #4A2C22"></div>
-<script src="js/config.js?v=6"></script>
-<script src="js/comun.js?v=6"></script>
+<script src="js/config.js?v=7"></script>
+<script src="js/comun.js?v=7"></script>
 <script>
 const MEJORAR = ['Rapidez de atención', 'Amabilidad del personal', 'Calidad del producto', 'Limpieza del local', 'Pedido incompleto o incorrecto', 'Otro motivo'];
 const GUSTO = ['Rapidez de atención', 'Amabilidad del personal', 'Calidad del producto', 'Limpieza del local', 'Variedad de productos', 'Otro motivo'];
@@ -162,7 +162,7 @@ function pintar() {
     estado.exp = Number(b.dataset.cara);
     estado.reg.experiencia = CARAS[estado.exp];
     estado.sel = {};
-    ir(1);
+    tocarYSeguir(b, () => ir(1));
   });
   escenario.querySelectorAll('[data-opcion]').forEach((b) => b.onclick = () => {
     const i = Number(b.dataset.opcion);
@@ -170,8 +170,8 @@ function pintar() {
     b.classList.toggle('sel', estado.sel[i]);
     b.setAttribute('aria-pressed', String(estado.sel[i]));
   });
-  escenario.querySelectorAll('[data-tipo]').forEach((b) => b.onclick = () => { estado.reg.tipo_cliente = b.dataset.tipo; ir(2); });
-  escenario.querySelectorAll('[data-nps]').forEach((b) => b.onclick = () => { estado.reg.nps = Number(b.dataset.nps); ir(4); });
+  escenario.querySelectorAll('[data-tipo]').forEach((b) => b.onclick = () => { estado.reg.tipo_cliente = b.dataset.tipo; tocarYSeguir(b, () => ir(2)); });
+  escenario.querySelectorAll('[data-nps]').forEach((b) => b.onclick = () => { estado.reg.nps = Number(b.dataset.nps); tocarYSeguir(b, () => ir(4)); });
   conectarOfertas(estado, () => ir(GRACIAS));
   const ta = document.getElementById('comentario');
   if (ta) { ta.oninput = () => { estado.comentario = ta.value; }; setTimeout(() => ta.focus(), 50); }

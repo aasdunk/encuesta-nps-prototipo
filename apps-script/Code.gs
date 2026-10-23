@@ -1,14 +1,18 @@
 // Recibe cada respuesta del prototipo y la agrega como fila en la hoja "Respuestas".
 // Implementar como aplicación web: Ejecutar como "Yo", acceso "Cualquier persona".
 // Si llega un campo nuevo, se agrega solo como columna al final de la hoja.
+// doGet?accion=datos entrega las respuestas para el dashboard, sin datos personales.
 
 const HOJA = 'Respuestas';
+const HOJA_LOCALES = 'Locales';
 const COLUMNAS_INICIALES = [
-  'recibido', 'id', 'marca', 'flujo', 'inicio', 'fin', 'duracion_seg', 'completada', 'ultimo_paso',
+  'recibido', 'id', 'local', 'marca', 'flujo', 'inicio', 'fin', 'duracion_seg', 'completada', 'ultimo_paso',
   'experiencia', 'tipo_cliente', 'producto',
   'calidad', 'exactitud', 'velocidad', 'amabilidad', 'limpieza', 'atributo_evaluado',
   'motivos', 'nps', 'comentario', 'nombres', 'apellidos', 'email', 'acepta_ofertas', 'dispositivo'
 ];
+// Columnas que nunca salen hacia el dashboard
+const PRIVADAS = ['nombres', 'apellidos', 'email', 'dispositivo'];
 
 function doPost(e) {
   const lock = LockService.getScriptLock();
@@ -32,15 +36,55 @@ function doPost(e) {
     });
 
     hoja.appendRow(columnas.map((c) => (datos[c] === undefined ? '' : datos[c])));
-    return ContentService.createTextOutput(JSON.stringify({ ok: true })).setMimeType(ContentService.MimeType.JSON);
+    return json({ ok: true });
   } catch (err) {
-    return ContentService.createTextOutput(JSON.stringify({ ok: false, error: String(err) })).setMimeType(ContentService.MimeType.JSON);
+    return json({ ok: false, error: String(err) });
   } finally {
     lock.releaseLock();
   }
 }
 
-// Permite comprobar desde el navegador que la aplicación web está activa.
-function doGet() {
-  return ContentService.createTextOutput('Encuesta NPS: servicio activo');
+function doGet(e) {
+  if (!e || !e.parameter || e.parameter.accion !== 'datos') {
+    return ContentService.createTextOutput('Encuesta NPS: servicio activo');
+  }
+  const libro = SpreadsheetApp.getActiveSpreadsheet();
+  return json({ ok: true, generado: new Date(), respuestas: leerHoja(libro.getSheetByName(HOJA), PRIVADAS), locales: leerLocales(libro) });
+}
+
+function leerHoja(hoja, excluir) {
+  if (!hoja || hoja.getLastRow() < 2) return [];
+  const valores = hoja.getDataRange().getValues();
+  const columnas = valores[0];
+  return valores.slice(1).map((fila) => {
+    const obj = {};
+    columnas.forEach((c, i) => { if (c && excluir.indexOf(c) === -1) obj[c] = fila[i]; });
+    // Indica si la persona dejó sus datos para ofertas, sin exponer cuáles son
+    obj.dejo_contacto = !!fila[columnas.indexOf('email')];
+    return obj;
+  });
+}
+
+// Hoja "Locales": código, nombre, marca, supervisor y gerente de operaciones de cada tablet.
+function leerLocales(libro) {
+  let hoja = libro.getSheetByName(HOJA_LOCALES);
+  if (!hoja) {
+    hoja = libro.insertSheet(HOJA_LOCALES);
+    hoja.appendRow(['local', 'nombre', 'marca', 'supervisor', 'gop']);
+    hoja.appendRow(['DK001', 'Dunkin de prueba 1', 'Dunkin', 'Supervisor A', 'GOP Norte']);
+    hoja.appendRow(['JJ001', "Jimmy John's de prueba 1", "Jimmy John's", 'Supervisor B', 'GOP Sur']);
+    hoja.setFrozenRows(1);
+  }
+  if (hoja.getLastRow() < 2) return [];
+  const valores = hoja.getDataRange().getValues();
+  const columnas = valores[0];
+  return valores.slice(1).filter((f) => f[0]).map((fila) => {
+    const obj = {};
+    columnas.forEach((c, i) => { obj[c] = fila[i]; });
+    return obj;
+  });
+}
+
+function json(obj) {
+  return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
 }

@@ -7,12 +7,12 @@
 <title>Dunkin · Flujo actual</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Roboto:wght@400;500&display=swap">
-<link rel="stylesheet" href="css/app.css?v=6">
+<link rel="stylesheet" href="css/app.css?v=7">
 </head>
 <body>
 <div id="escenario"></div>
-<script src="js/config.js?v=6"></script>
-<script src="js/comun.js?v=6"></script>
+<script src="js/config.js?v=7"></script>
+<script src="js/comun.js?v=7"></script>
 <script>
 // Flujo actual de Dunkin: cada paso es la captura de la tablet con zonas táctiles encima.
 // Las coordenadas están medidas sobre las imágenes originales de 1586 x 992 px.
@@ -132,7 +132,7 @@ function pintar() {
       const z = p.zonas[Number(b.dataset.zona)];
       leerTextos();
       if (p.campo) estado.reg[p.campo] = z.valor;
-      ir(z.saltar !== undefined ? z.saltar : n + 1);
+      tocarYSeguir(b, () => ir(z.saltar !== undefined ? z.saltar : n + 1));
     };
   });
   const bv = escenario.querySelector('[data-volver]');

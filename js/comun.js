@@ -2,7 +2,7 @@
 // envío a Google Sheets, inactividad y dibujo de caritas.
 
 const CAMPOS_REGISTRO = [
-  'id', 'marca', 'flujo', 'inicio', 'fin', 'duracion_seg', 'completada', 'ultimo_paso',
+  'id', 'local', 'marca', 'flujo', 'inicio', 'fin', 'duracion_seg', 'completada', 'ultimo_paso',
   'experiencia', 'tipo_cliente', 'producto',
   'calidad', 'exactitud', 'velocidad', 'amabilidad', 'limpieza', 'atributo_evaluado',
   'motivos', 'nps', 'comentario', 'nombres', 'apellidos', 'email', 'acepta_ofertas', 'dispositivo'
@@ -24,8 +24,20 @@ function nuevoId() {
   return Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
 }
 
+// Código del local donde está la tablet. Se configura una vez abriendo cualquier página con
+// ?local=DK001 y queda guardado en esa tablet; sin código, las respuestas quedan como SIN-LOCAL.
+function codigoLocal() {
+  const enUrl = new URLSearchParams(location.search).get('local');
+  if (enUrl) {
+    const limpio = enUrl.trim().toUpperCase().replace(/[^A-Z0-9_-]/g, '').slice(0, 20);
+    try { localStorage.setItem('encuesta_local', limpio); } catch (e) { /* sin almacenamiento local */ }
+    return limpio || 'SIN-LOCAL';
+  }
+  try { return localStorage.getItem('encuesta_local') || 'SIN-LOCAL'; } catch (e) { return 'SIN-LOCAL'; }
+}
+
 function nuevoRegistro(marca, flujo) {
-  return { id: nuevoId(), marca, flujo, inicio: new Date().toISOString(), completada: false, ultimo_paso: '' };
+  return { id: nuevoId(), local: codigoLocal(), marca, flujo, inicio: new Date().toISOString(), completada: false, ultimo_paso: '' };
 }
 
 // Guarda una copia local y envía la respuesta a Google Sheets.
@@ -78,6 +90,14 @@ function caraSVG(i, tam, rojoMarca) {
     ? '<path d="M30 46 Q38 38 46 46 M74 46 Q82 38 90 46" fill="none" stroke="#1A1A1A" stroke-width="5" stroke-linecap="round"/>'
     : '<ellipse cx="44" cy="48" rx="4" ry="6" fill="#1A1A1A"/><ellipse cx="76" cy="48" rx="4" ry="6" fill="#1A1A1A"/>';
   return `<svg width="${tam}" height="${tam}" viewBox="0 0 120 120" aria-hidden="true"><defs><radialGradient id="${id}" cx="35%" cy="28%" r="75%"><stop offset="0%" stop-color="${c[0]}"/><stop offset="60%" stop-color="${c[1]}"/><stop offset="100%" stop-color="${c[2]}"/></radialGradient></defs><circle cx="60" cy="60" r="58" fill="url(#${id})"/>${ojos}<path d="${BOCAS[i]}" fill="none" stroke="#1A1A1A" stroke-width="7" stroke-linecap="round"/></svg>`;
+}
+
+// Marca visualmente el botón tocado y avanza un instante después, para que el cliente
+// vea que su toque se registró. Bloquea otros toques durante la pausa.
+function tocarYSeguir(boton, accion) {
+  boton.classList.add('tocado');
+  document.body.style.pointerEvents = 'none';
+  setTimeout(() => { document.body.style.pointerEvents = ''; accion(); }, 380);
 }
 
 // Pantalla de fidelización: valida nombre, correo y consentimiento, y guarda la decisión en el registro.

@@ -7,7 +7,7 @@
 <title>Jimmy John's · Flujo propuesto</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@500;700;800&display=swap">
-<link rel="stylesheet" href="css/app.css?v=6">
+<link rel="stylesheet" href="css/app.css?v=7">
 <style>
 #escenario { font-family: 'Archivo', system-ui, sans-serif; color: #000000; }
 .anton { font-family: 'Anton', sans-serif; font-weight: 400; letter-spacing: 1px; }
@@ -16,6 +16,7 @@
 .prod { height: 104px; border: 3px solid #000000; background: #FFFFFF; font-family: 'Anton', sans-serif; font-size: 30px; letter-spacing: 1px; color: #000000; }
 .prod.sel { background: #EA0029; color: #FFFFFF; border-color: #EA0029; }
 .continuar-prod:disabled { background: #BDBDBD; cursor: default; }
+[data-accion="delivery"].tocado { background: #000000 !important; color: #FFFFFF !important; filter: none; }
 .motivo { height: 92px; border: 3px solid #000000; background: #FFFFFF; font-family: inherit; font-size: 19px; font-weight: 800; letter-spacing: 0.5px; color: #000000; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 0 20px; text-align: left; }
 .motivo.sel { background: #EA0029; border-color: #EA0029; color: #FFFFFF; }
 .motivo .check { display: none; }
@@ -27,8 +28,8 @@
 </head>
 <body>
 <div id="escenario"></div>
-<script src="js/config.js?v=6"></script>
-<script src="js/comun.js?v=6"></script>
+<script src="js/config.js?v=7"></script>
+<script src="js/comun.js?v=7"></script>
 <script>
 const MAYUS = CARAS.map((c) => c.toUpperCase());
 const ATRIBUTOS = [
@@ -177,12 +178,12 @@ function pintar() {
       estado.exp = i;
       estado.reg.experiencia = CARAS[i];
       estado.sel = {};
-      ir(1);
+      tocarYSeguir(b, () => ir(1));
     } else {
       ['calidad', 'exactitud', 'velocidad', 'amabilidad', 'limpieza'].forEach((k) => { estado.reg[k] = ''; });
       estado.reg[a.campo] = CARAS[i];
       estado.reg.atributo_evaluado = cap(a.titulo);
-      ir(negativo() ? 3 : 4);
+      tocarYSeguir(b, () => ir(negativo() ? 3 : 4));
     }
   });
   escenario.querySelectorAll('[data-producto]').forEach((b) => b.onclick = () => {
@@ -199,7 +200,7 @@ function pintar() {
     b.classList.toggle('sel', estado.sel[i]);
     b.setAttribute('aria-pressed', String(estado.sel[i]));
   });
-  escenario.querySelectorAll('[data-nps]').forEach((b) => b.onclick = () => { estado.reg.nps = Number(b.dataset.nps); ir(5); });
+  escenario.querySelectorAll('[data-nps]').forEach((b) => b.onclick = () => { estado.reg.nps = Number(b.dataset.nps); tocarYSeguir(b, () => ir(5)); });
   conectarOfertas(estado, () => ir(GRACIAS));
   const ta = document.getElementById('comentario');
   if (ta) { ta.oninput = () => { estado.comentario = ta.value; }; setTimeout(() => ta.focus(), 50); }
@@ -219,7 +220,7 @@ function pintar() {
       estado.reg.tipo_cliente = 'Delivery';
       estado.reg.producto = 'No aplica';
       estado.attr = Math.random() < 0.5 ? 1 : 2;
-      ir(2);
+      tocarYSeguir(b, () => ir(2));
     } else if (acc === 'inicio') { reiniciarEstado(); pintar(); }
   });
 }

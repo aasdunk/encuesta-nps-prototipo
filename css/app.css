@@ -3,6 +3,10 @@ html, body { margin: 0; height: 100%; background: #111111; overflow: hidden; }
 body { font-family: 'Fredoka', system-ui, sans-serif; -webkit-tap-highlight-color: transparent; user-select: none; }
 button { font-family: inherit; cursor: pointer; }
 button:disabled { opacity: 0.45; cursor: default; }
+button { transition: transform 0.12s, filter 0.12s, background-color 0.12s, color 0.12s; }
+.tocado { transform: scale(0.95); filter: brightness(0.85); }
+.cara.tocado { filter: none; transform: scale(1.08); }
+.cara.tocado svg { filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.35)); }
 input, textarea { user-select: text; }
 
 /* Escenario fijo de 1280x800 que se escala al tamaño de la pantalla */
@@ -14,7 +18,7 @@ input, textarea { user-select: text; }
 /* Zonas táctiles invisibles sobre las imágenes del flujo actual */
 .zona { position: absolute; background: transparent; border: none; border-radius: 18px; padding: 0; }
 .ver-zonas .zona { background: rgba(232, 23, 138, 0.22); }
-.zona:active { background: rgba(0, 0, 0, 0.08); }
+.zona:active, .zona.tocado { background: rgba(0, 0, 0, 0.14); transform: none; filter: none; }
 
 .campo { position: absolute; border: none; outline: none; background: #FFFFFF; font-family: 'Roboto', system-ui, sans-serif; font-size: 24px; color: #333333; padding: 0 16px; border-radius: 7px; }
 textarea.campo { padding: 14px 20px; resize: none; border-radius: 16px; }
