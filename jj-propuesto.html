@@ -7,7 +7,7 @@
 <title>Jimmy John's · Flujo propuesto</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@500;700;800&display=swap">
-<link rel="stylesheet" href="css/app.css?v=9">
+<link rel="stylesheet" href="css/app.css?v=10">
 <style>
 #escenario { font-family: 'Archivo', system-ui, sans-serif; color: #000000; }
 .anton { font-family: 'Anton', sans-serif; font-weight: 400; letter-spacing: 1px; }
@@ -28,8 +28,8 @@
 </head>
 <body>
 <div id="escenario"></div>
-<script src="js/config.js?v=9"></script>
-<script src="js/comun.js?v=9"></script>
+<script src="js/config.js?v=10"></script>
+<script src="js/comun.js?v=10"></script>
 <script>
 const MAYUS = CARAS.map((c) => c.toUpperCase());
 const ATRIBUTOS = [
@@ -142,8 +142,9 @@ function pintar() {
           <input id="of-nombre" class="campo" type="text" autocomplete="off" value="${valorOferta(estado, 'nombre')}" style="position: static; display: block; margin-top: 6px; width: 760px; height: 64px; border: 3px solid #000000; border-radius: 0"></label>
         <label style="font-size: 16px; font-weight: 800; letter-spacing: 1px">CORREO
           <input id="of-email" class="campo" type="email" autocomplete="off" value="${valorOferta(estado, 'email')}" style="position: static; display: block; margin-top: 6px; width: 760px; height: 64px; border: 3px solid #000000; border-radius: 0"></label>
-        <label style="display: flex; align-items: center; gap: 14px; font-size: 18px; font-weight: 700; color: #000000">
-          <input id="of-acepta" type="checkbox" ${estado.of && estado.of.acepta ? 'checked' : ''} style="width: 30px; height: 30px; accent-color: #EA0029"> Acepto recibir ofertas y promociones de Jimmy John's por correo.</label>
+        <label style="display: flex; align-items: flex-start; gap: 14px; font-size: 17px; font-weight: 700; line-height: 1.35; color: #000000">
+          <input id="of-acepta" type="checkbox" ${estado.of && estado.of.acepta ? 'checked' : ''} style="flex: none; width: 30px; height: 30px; margin: 0; accent-color: #EA0029">
+          <span>Acepto la <button type="button" data-politica style="padding: 0; border: none; background: none; font: inherit; font-weight: 800; color: #EA0029; text-decoration: underline">Política de privacidad</button> y que FAGASE use mi nombre y correo para enviarme ofertas de Jimmy John's. Puedo darme de baja cuando quiera.</span></label>
         <div style="display: flex; align-items: center; gap: 16px; margin-top: 8px">
           <button data-ofertas="si" class="anton" style="height: 72px; flex: 1; border: none; background: #EA0029; font-size: 30px; color: #FFFFFF">QUIERO RECIBIR OFERTAS</button>
           <button data-ofertas="no" style="height: 72px; padding: 0 28px; border: none; background: transparent; font-size: 18px; font-weight: 800; letter-spacing: 1px; color: #000000; text-decoration: underline">NO, GRACIAS</button>

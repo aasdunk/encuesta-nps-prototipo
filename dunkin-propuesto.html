@@ -7,7 +7,7 @@
 <title>Dunkin · Flujo propuesto</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap">
-<link rel="stylesheet" href="css/app.css?v=9">
+<link rel="stylesheet" href="css/app.css?v=10">
 <style>
 .logo-dk { position: absolute; width: 170px; height: 36px; overflow: hidden; }
 .logo-dk img { position: absolute; left: 0; top: -11px; width: 260px; height: 57px; }
@@ -20,8 +20,8 @@
 </head>
 <body>
 <div id="escenario" style="color: #4A2C22"></div>
-<script src="js/config.js?v=9"></script>
-<script src="js/comun.js?v=9"></script>
+<script src="js/config.js?v=10"></script>
+<script src="js/comun.js?v=10"></script>
 <script>
 const MEJORAR = ['Rapidez de atención', 'Amabilidad del personal', 'Calidad del producto', 'Limpieza del local', 'Pedido incompleto o incorrecto', 'Otro motivo'];
 const GUSTO = ['Rapidez de atención', 'Amabilidad del personal', 'Calidad del producto', 'Limpieza del local', 'Variedad de productos', 'Otro motivo'];
@@ -134,8 +134,9 @@ function pintar() {
           <input id="of-nombre" class="campo" type="text" autocomplete="off" value="${valorOferta(estado, 'nombre')}" style="position: static; display: block; margin-top: 6px; width: 760px; height: 64px; border: 2px solid #D8D2CE; border-radius: 12px"></label>
         <label style="font-size: 20px; font-weight: 600; color: #E8178A">Correo
           <input id="of-email" class="campo" type="email" autocomplete="off" value="${valorOferta(estado, 'email')}" style="position: static; display: block; margin-top: 6px; width: 760px; height: 64px; border: 2px solid #D8D2CE; border-radius: 12px"></label>
-        <label style="display: flex; align-items: center; gap: 14px; font-size: 20px; font-weight: 500; color: #4A2C22">
-          <input id="of-acepta" type="checkbox" ${estado.of && estado.of.acepta ? 'checked' : ''} style="width: 30px; height: 30px; accent-color: #E8178A"> Acepto recibir ofertas y promociones de Dunkin' por correo.</label>
+        <label style="display: flex; align-items: flex-start; gap: 14px; font-size: 19px; font-weight: 500; line-height: 1.35; color: #4A2C22">
+          <input id="of-acepta" type="checkbox" ${estado.of && estado.of.acepta ? 'checked' : ''} style="flex: none; width: 30px; height: 30px; margin: 0; accent-color: #E8178A">
+          <span>Acepto la <button type="button" data-politica style="padding: 0; border: none; background: none; font: inherit; font-weight: 700; color: #E8178A; text-decoration: underline">Política de privacidad</button> y que FAGASE use mi nombre y correo para enviarme ofertas de Dunkin'. Puedo darme de baja cuando quiera.</span></label>
         <div style="display: flex; align-items: center; gap: 16px; margin-top: 8px">
           <button data-ofertas="si" style="height: 72px; flex: 1; border: none; border-radius: 999px; background: #E8178A; font-size: 28px; font-weight: 700; color: #FFFFFF">Quiero recibir ofertas</button>
           <button data-ofertas="no" style="height: 72px; padding: 0 28px; border: none; background: transparent; font-size: 24px; font-weight: 600; color: #4A2C22; text-decoration: underline">No, gracias</button>
