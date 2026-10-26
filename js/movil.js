@@ -102,7 +102,8 @@ function enviar(reg, alSalir) {
       html = `${cabecera(true)}
         <main class="cuerpo">
           <h1>¿Algo más que quieras contarnos?</h1>
-          <textarea id="m-comentario" rows="4" maxlength="500" placeholder="Escribe aquí (opcional)">${esc(estado.comentario)}</textarea>
+          <p class="sub">Opcional.</p>
+          <textarea id="m-comentario" rows="4" maxlength="500">${esc(estado.comentario)}</textarea>
           <section class="ofertas">
             <h2>${M.textos.ofertas}</h2>
             <p class="sub">Déjanos tu nombre y correo (opcional).</p>
