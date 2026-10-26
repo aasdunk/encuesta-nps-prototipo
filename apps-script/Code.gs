@@ -5,6 +5,7 @@
 
 const HOJA = 'Respuestas';
 const HOJA_LOCALES = 'Locales';
+const HOJA_TRANSACCIONES = 'Transacciones';
 const COLUMNAS_INICIALES = [
   'recibido', 'id', 'local', 'marca', 'flujo', 'inicio', 'fin', 'duracion_seg', 'completada', 'ultimo_paso',
   'experiencia', 'tipo_cliente', 'producto',
@@ -49,7 +50,28 @@ function doGet(e) {
     return ContentService.createTextOutput('Encuesta NPS: servicio activo');
   }
   const libro = SpreadsheetApp.getActiveSpreadsheet();
-  return json({ ok: true, generado: new Date(), respuestas: leerHoja(libro.getSheetByName(HOJA), PRIVADAS), locales: leerLocales(libro) });
+  return json({ ok: true, generado: new Date(), respuestas: leerHoja(libro.getSheetByName(HOJA), PRIVADAS), locales: leerLocales(libro), transacciones: leerTransacciones(libro) });
+}
+
+// Hoja "Transacciones": boletas por local y día (fecha, local, trx), cargadas a mano o desde el POS.
+// Con ellas el dashboard calcula la tasa de insatisfacción = insatisfechos / transacciones.
+function leerTransacciones(libro) {
+  let hoja = libro.getSheetByName(HOJA_TRANSACCIONES);
+  if (!hoja) {
+    hoja = libro.insertSheet(HOJA_TRANSACCIONES);
+    hoja.appendRow(['fecha', 'local', 'trx']);
+    hoja.setFrozenRows(1);
+    hoja.getRange('A:A').setNumberFormat('yyyy-mm-dd');
+  }
+  if (hoja.getLastRow() < 2) return [];
+  const zona = libro.getSpreadsheetTimeZone();
+  return hoja.getRange(2, 1, hoja.getLastRow() - 1, 3).getValues()
+    .filter((f) => f[0] && f[1] && Number(f[2]) > 0)
+    .map((f) => ({
+      fecha: f[0] instanceof Date ? Utilities.formatDate(f[0], zona, 'yyyy-MM-dd') : String(f[0]).slice(0, 10),
+      local: String(f[1]).trim(),
+      trx: Number(f[2])
+    }));
 }
 
 function leerHoja(hoja, excluir) {

@@ -87,6 +87,16 @@ td.num, th.num { text-align: right; }
 .estado.alerta { color: #b07a00; }
 .estado.mal { color: var(--critico); }
 .pie { margin-top: 24px; font-size: 13px; color: var(--texto-2); line-height: 1.5; }
+.bloque { border-top: 1px solid var(--borde); padding-top: 16px; margin-bottom: 8px; }
+.bloque-cab { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 12px; margin-bottom: 12px; }
+.bloque-cab h2 { margin: 0; font-size: 20px; font-weight: 800; }
+.bloque-cab .nota { margin: 4px 0 0; max-width: 820px; font-size: 13px; color: var(--texto-2); }
+.filtros-bloque { display: flex; gap: 12px; }
+.filtros-bloque label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; font-weight: 700; color: var(--texto-2); text-transform: uppercase; letter-spacing: 0.5px; }
+.filtros-bloque select, .filtros-bloque input { height: 36px; min-width: 140px; border-radius: 8px; border: 1px solid var(--borde); background: var(--superficie); color: var(--texto); font: 500 14px 'Archivo', sans-serif; padding: 0 8px; }
+.filtros-bloque input { min-width: 90px; width: 90px; }
+.aviso { display: none; background: var(--superficie); border: 1px dashed var(--borde); border-radius: 12px; padding: 12px 16px; margin-bottom: 12px; font-size: 14px; color: var(--texto-2); }
+.demo { background: #fff4d6; color: #6b4e00; border-radius: 12px; padding: 10px 16px; margin-bottom: 16px; font-size: 14px; font-weight: 600; }
 .error { background: #fde8e8; color: #8a1c1c; border-radius: 12px; padding: 12px 16px; margin-bottom: 16px; display: none; }
 </style>
 </head>
@@ -122,6 +132,37 @@ td.num, th.num { text-align: right; }
   </section>
 
   <section class="kpis" id="kpis" aria-label="Indicadores principales"></section>
+
+  <section class="bloque" aria-label="Tasa de insatisfacción">
+    <div class="bloque-cab">
+      <div>
+        <h2>Tasa de insatisfacción</h2>
+        <p class="nota">Insatisfechos ÷ transacciones del local, igual que el reporte diario de Global Metrics. Solo cuentan los días en que el local tiene transacciones cargadas en la hoja <b>Transacciones</b>. Esta sección usa su propio día de referencia; el filtro de período no la afecta.</p>
+      </div>
+      <div class="filtros-bloque">
+        <label>Día de referencia<select id="t-dia"></select></label>
+        <label>Límite (%)<input id="t-limite" type="number" min="0" step="0.05" value="0.60"></label>
+      </div>
+    </div>
+    <div class="aviso" id="t-aviso"></div>
+    <div class="kpis" id="t-kpis"></div>
+    <div class="grid">
+      <div class="card" style="grid-column: 1 / -1"><h2>Evolución de la tasa de insatisfacción</h2><p class="nota">Últimas 8 semanas (lunes a domingo). La línea punteada es el límite.</p><div class="lienzo"><canvas id="g-tasa-semanas"></canvas></div></div>
+    </div>
+    <div class="grid">
+      <div class="card"><h2>Bottom 20 · día de referencia</h2><p class="nota">Locales con mayor tasa de insatisfacción. Tendencia ISN = ISN del día − ISN de los 7 días anteriores.</p><div class="tabla" id="t-bottom-dia"></div></div>
+      <div class="card"><h2>Top 20 · día de referencia</h2><p class="nota">Locales con menor tasa de insatisfacción.</p><div class="tabla" id="t-top-dia"></div></div>
+    </div>
+    <div class="grid">
+      <div class="card" style="grid-column: 1 / -1"><h2>Bottom 20 · acumulado del mes</h2><p class="nota">Del día 1 del mes hasta el día de referencia. Tendencia ISN = ISN del mes − ISN del mismo período del mes anterior.</p><div class="tabla" id="t-bottom-mes"></div></div>
+    </div>
+    <div class="grid">
+      <div class="card" style="grid-column: 1 / -1"><h2>Desempeño por gerente de operaciones (GO)</h2><p class="nota">Acumulado del mes. ISN de la experiencia y de cada atributo.</p><div class="tabla" id="t-go"></div></div>
+    </div>
+    <div class="grid">
+      <div class="card" style="grid-column: 1 / -1"><h2>Desempeño por supervisor (SGO)</h2><p class="nota">Acumulado del mes, ordenado de mayor a menor tasa de insatisfacción.</p><div class="tabla" id="t-sgo"></div></div>
+    </div>
+  </section>
 
   <section class="grid">
     <div class="card"><h2>Experiencia general por flujo</h2><p class="nota">Porcentaje de respuestas en cada carita. ISN = satisfechos − insatisfechos.</p><div class="lienzo"><canvas id="g-experiencia"></canvas></div></div>
@@ -164,7 +205,7 @@ td.num, th.num { text-align: right; }
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<script src="js/config.js?v=8"></script>
+<script src="js/config.js?v=10"></script>
 <script>
 const SATISFECHOS = ['Muy satisfecho', 'Satisfecho'];
 const INSATISFECHOS = ['Insatisfecho', 'Muy insatisfecho'];
@@ -182,7 +223,9 @@ const cap = (t) => t ? t.charAt(0).toUpperCase() + t.slice(1).toLowerCase() : t;
 
 let todas = [];
 let locales = {};
+let transacciones = [];
 const graficos = {};
+const MODO_DEMO = new URLSearchParams(location.search).has('demo');
 
 function isn(valores) {
   const v = valores.filter(Boolean);
@@ -224,11 +267,11 @@ async function cargar() {
   const estado = document.getElementById('estado-datos');
   estado.textContent = 'Cargando respuestas…';
   try {
-    const resp = await fetch(url + '?accion=datos&t=' + Date.now());
-    const datos = await resp.json();
+    const datos = MODO_DEMO ? datosDemo() : await fetch(url + '?accion=datos&t=' + Date.now()).then((r) => r.json());
     if (!datos.ok) throw new Error(datos.error || 'respuesta inválida');
     locales = {};
     (datos.locales || []).forEach((l) => { locales[l.local] = l; });
+    transacciones = datos.transacciones || [];
     todas = (datos.respuestas || []).map(normalizar);
     document.getElementById('error').style.display = 'none';
     estado.textContent = `${todas.length} respuestas en total · actualizado ${new Date().toLocaleString('es-CL')}`;
@@ -289,6 +332,7 @@ function grafico(id, config) {
 const barras = (extra) => Object.assign({ borderRadius: 4, maxBarThickness: 28, borderSkipped: 'start' }, extra);
 
 function pintar() {
+  pintarTasa();
   const base = filtradas(true);
   const rs = filtradas(false);
   const completas = base.filter((r) => r.completada);
@@ -431,6 +475,176 @@ function pintar() {
   }</tbody></table>` : '<div class="vacio">Sin comentarios para este filtro</div>';
 }
 
+// ---------- Tasa de insatisfacción (insatisfechos ÷ transacciones) ----------
+const tasaTxt = (x) => (x === null || isNaN(x) ? '—' : (x * 100).toLocaleString('es-CL', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '%');
+const ppTxt = (x) => (x === null || isNaN(x) ? '—' : (x > 0 ? '+' : '') + (x * 100).toLocaleString('es-CL', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' pp');
+const isnTxt = (x) => (x === null || isNaN(x) ? '—' : (x * 100).toLocaleString('es-CL', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + '%');
+const sumarDias = (dia, n) => { const d = new Date(dia + 'T12:00:00'); d.setDate(d.getDate() + n); return diaDe(d); };
+const lunesDe = (dia) => { const d = new Date(dia + 'T12:00:00'); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return diaDe(d); };
+
+// Respuestas con los filtros de marca, flujo, GO, supervisor, local y "solo completas", sin el filtro de período
+function respuestasSinPeriodo() {
+  const solo = document.getElementById('f-completas').checked;
+  return todas.filter((r) => FILTROS.every(([id, , campo]) => { const v = document.getElementById(id).value; return !v || campo(r) === v; }) && (!solo || r.completada));
+}
+// Transacciones de los locales que pasan los filtros (marca, GO, supervisor y local; el flujo no aplica a las boletas)
+function transaccionesFiltradas() {
+  const f = (id) => document.getElementById(id).value;
+  return transacciones.filter((t) => {
+    const l = locales[t.local] || {};
+    return (!f('f-marca') || l.marca === f('f-marca')) && (!f('f-gop') || (l.gop || 'Sin asignar') === f('f-gop'))
+      && (!f('f-supervisor') || (l.supervisor || 'Sin asignar') === f('f-supervisor')) && (!f('f-local') || t.local === f('f-local'));
+  });
+}
+// Resume un grupo de respuestas: ISN de experiencia y atributos, insatisfechos y tasa contra las transacciones de esos locales y días
+function resumen(rs, trxPorClave, desde, hasta) {
+  const enRango = rs.filter((r) => { const d = diaDe(r.fecha); return d >= desde && d <= hasta; });
+  const exp = isn(enRango.map((r) => r.experiencia));
+  let ins = 0, trx = 0;
+  const vistos = new Set();
+  enRango.forEach((r) => {
+    const clave = r.local + '|' + diaDe(r.fecha);
+    if (!trxPorClave.has(clave)) return;
+    if (INSATISFECHOS.includes(r.experiencia)) ins++;
+    if (!vistos.has(clave)) { vistos.add(clave); trx += trxPorClave.get(clave); }
+  });
+  const atr = {};
+  ATRIBUTOS.forEach((a) => { atr[a] = isn(enRango.map((r) => r[a])).isn; });
+  return { n: enRango.length, insTotal: exp.ins, ins, trx, tasa: trx ? ins / trx : null, isn: exp.isn, atr };
+}
+
+function pintarTasa() {
+  const rs = respuestasSinPeriodo();
+  const trxFiltradas = transaccionesFiltradas();
+  const trxPorClave = new Map(trxFiltradas.map((t) => [t.local + '|' + t.fecha, t.trx]));
+  const limite = (Number(document.getElementById('t-limite').value) || 0) / 100;
+
+  // Días disponibles: los que tienen respuestas
+  const selDia = document.getElementById('t-dia');
+  const dias = [...new Set(rs.map((r) => diaDe(r.fecha)).filter(Boolean))].sort().reverse();
+  const elegido = selDia.value;
+  selDia.innerHTML = dias.map((d) => `<option value="${d}">${d.split('-').reverse().join('-')}</option>`).join('');
+  if (dias.includes(elegido)) selDia.value = elegido;
+  const dia = selDia.value;
+
+  const aviso = document.getElementById('t-aviso');
+  const sinTrx = !trxFiltradas.length;
+  aviso.style.display = sinTrx ? 'block' : 'none';
+  aviso.innerHTML = 'Todavía no hay transacciones cargadas para estos locales. Agrega filas en la hoja <b>Transacciones</b> de la planilla (fecha, local, trx) para ver la tasa de insatisfacción. Para ver cómo se ve con datos, abre el <a href="dashboard.html?demo">dashboard con datos de ejemplo</a>.';
+  if (!dia) { ['t-kpis', 't-bottom-dia', 't-top-dia', 't-bottom-mes', 't-go', 't-sgo'].forEach((id) => { document.getElementById(id).innerHTML = ''; }); grafico('g-tasa-semanas', { type: 'line', data: { labels: [], datasets: [] } }); return; }
+
+  const inicioMes = dia.slice(0, 8) + '01';
+  const d = new Date(dia + 'T12:00:00');
+  const mesAnt = new Date(d.getFullYear(), d.getMonth() - 1, 1);
+  const inicioMesAnt = diaDe(mesAnt);
+  const finMesAnt = sumarDias(inicioMesAnt, Math.min(d.getDate(), new Date(d.getFullYear(), d.getMonth(), 0).getDate()) - 1);
+
+  const delDia = resumen(rs, trxPorClave, dia, dia);
+  const delMes = resumen(rs, trxPorClave, inicioMes, dia);
+  const porLocal = (filas, desde, hasta) => [...new Set(filas.map((r) => r.local))].map((l) => ({ l, x: resumen(filas.filter((r) => r.local === l), trxPorClave, desde, hasta) }));
+  const localesDia = porLocal(rs, dia, dia).filter((p) => p.x.n);
+  const fueraLimite = localesDia.filter((p) => p.x.tasa !== null && p.x.tasa > limite).length;
+  const conTrxDia = localesDia.filter((p) => p.x.tasa !== null).length;
+
+  document.getElementById('t-kpis').innerHTML = [
+    ['Tasa de insatisfacción · día', tasaTxt(delDia.tasa), `${delDia.ins} insatisfechos sobre ${delDia.trx.toLocaleString('es-CL')} transacciones`],
+    ['Tasa de insatisfacción · mes', tasaTxt(delMes.tasa), `Del ${inicioMes.split('-').reverse().join('-')} al ${dia.split('-').reverse().join('-')}`],
+    ['Respuestas del día', delDia.n.toLocaleString('es-CL'), `${delDia.insTotal} insatisfechos en total`],
+    ['Locales fuera del límite', sinTrx ? '—' : fueraLimite, `De ${conTrxDia} locales con transacciones ese día (límite ${tasaTxt(limite)})`],
+    ['ISN experiencia · día', isnTxt(delDia.isn), `Mes: ${isnTxt(delMes.isn)}`]
+  ].map(([t, v, dd]) => `<div class="kpi"><div class="t">${t}</div><div class="v">${v}</div><div class="d">${escapar(dd)}</div></div>`).join('');
+
+  // Evolución de 8 semanas con el límite
+  const lunes = lunesDe(dia);
+  const semanas = Array.from({ length: 8 }, (_, i) => sumarDias(lunes, (i - 7) * 7));
+  const tasasSemana = semanas.map((s) => { const x = resumen(rs, trxPorClave, s, sumarDias(s, 6)); return x.tasa === null ? null : Math.round(x.tasa * 10000) / 100; });
+  const etiquetaSemana = (s) => { const f = sumarDias(s, 6); return `${s.slice(8)}-${s.slice(5, 7)} al ${f.slice(8)}-${f.slice(5, 7)}`; };
+  if (graficos['g-tasa-semanas']) graficos['g-tasa-semanas'].destroy();
+  const lienzo = document.getElementById('g-tasa-semanas');
+  const vacio = lienzo.parentElement.querySelector('.vacio');
+  if (vacio) vacio.remove();
+  if (tasasSemana.every((x) => x === null)) {
+    lienzo.style.display = 'none';
+    lienzo.insertAdjacentHTML('afterend', '<div class="vacio">Sin transacciones cargadas en estas 8 semanas</div>');
+  } else {
+    lienzo.style.display = '';
+    graficos['g-tasa-semanas'] = new Chart(lienzo, {
+      type: 'line',
+      data: { labels: semanas.map(etiquetaSemana), datasets: [
+        { label: 'Tasa de insatisfacción', data: tasasSemana, borderColor: css('--serie-1'), backgroundColor: css('--serie-1'), borderWidth: 2, pointRadius: 4, pointHoverRadius: 6, tension: 0, spanGaps: true },
+        { label: 'Límite', data: semanas.map(() => Math.round(limite * 10000) / 100), borderColor: css('--texto-3'), borderDash: [6, 4], borderWidth: 1.5, pointRadius: 0, pointHoverRadius: 0 }
+      ] },
+      options: { maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
+        scales: { y: { beginAtZero: true, ticks: { callback: (v) => v.toLocaleString('es-CL') + '%' } }, x: { grid: { display: false } } },
+        plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } }, tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${c.raw === null ? 'sin datos' : c.raw.toLocaleString('es-CL', { minimumFractionDigits: 2 }) + '%'}` } } } }
+    });
+  }
+
+  // Tablas de locales
+  const celdaTasa = (t) => t === null ? '<span style="color: var(--texto-3)">Sin Trx</span>' : t > limite ? `<span class="estado mal">${tasaTxt(t)}</span>` : tasaTxt(t);
+  const nombreLocal = (l) => escapar(locales[l] && locales[l].nombre ? `${locales[l].nombre} (${l})` : l);
+  const tablaLocales = (filas, tendencia) => filas.length ? `<table><thead><tr><th>Sucursal</th><th class="num">Nº respuestas</th><th class="num">Nº insatisfechos</th><th class="num">Trx</th><th class="num">Tasa de insatisfacción</th><th class="num">ISN experiencia</th><th class="num">Tendencia ISN</th></tr></thead><tbody>${
+    filas.map((p) => `<tr><td>${nombreLocal(p.l)}</td><td class="num">${p.x.n}</td><td class="num">${p.x.ins}</td><td class="num">${p.x.trx ? p.x.trx.toLocaleString('es-CL') : '—'}</td><td class="num">${celdaTasa(p.x.tasa)}</td><td class="num">${isnTxt(p.x.isn)}</td><td class="num">${ppTxt(tendencia(p))}</td></tr>`).join('')
+  }</tbody></table>` : '<div class="vacio">Sin locales con transacciones para este día</div>';
+
+  const previo7 = (l) => resumen(rs.filter((r) => r.local === l), trxPorClave, sumarDias(dia, -7), sumarDias(dia, -1)).isn;
+  const conTasaDia = localesDia.filter((p) => p.x.tasa !== null);
+  const tendDia = (p) => { const a = previo7(p.l); return p.x.isn === null || a === null ? null : p.x.isn - a; };
+  document.getElementById('t-bottom-dia').innerHTML = tablaLocales([...conTasaDia].sort((a, b) => b.x.tasa - a.x.tasa || a.x.isn - b.x.isn).slice(0, 20), tendDia);
+  document.getElementById('t-top-dia').innerHTML = tablaLocales([...conTasaDia].sort((a, b) => a.x.tasa - b.x.tasa || b.x.isn - a.x.isn).slice(0, 20), tendDia);
+
+  const localesMes = porLocal(rs, inicioMes, dia).filter((p) => p.x.tasa !== null);
+  const tendMes = (p) => { const a = resumen(rs.filter((r) => r.local === p.l), trxPorClave, inicioMesAnt, finMesAnt).isn; return p.x.isn === null || a === null ? null : p.x.isn - a; };
+  document.getElementById('t-bottom-mes').innerHTML = tablaLocales(localesMes.sort((a, b) => b.x.tasa - a.x.tasa).slice(0, 20), tendMes);
+
+  // Desempeño por GO y por supervisor (acumulado del mes)
+  const tablaGrupo = (campo, titulo) => {
+    const grupos = [...new Set(rs.map((r) => r[campo]))].map((g) => {
+      const filas = rs.filter((r) => r[campo] === g);
+      const x = resumen(filas, trxPorClave, inicioMes, dia);
+      const ant = resumen(filas, trxPorClave, inicioMesAnt, finMesAnt).isn;
+      return { g, x, tend: x.isn === null || ant === null ? null : x.isn - ant };
+    }).filter((p) => p.x.n).sort((a, b) => (b.x.tasa === null ? -1 : b.x.tasa) - (a.x.tasa === null ? -1 : a.x.tasa));
+    return grupos.length ? `<table><thead><tr><th>${titulo}</th><th class="num">Nº respuestas</th><th class="num">Nº insatisfechos</th><th class="num">Tasa de insatisfacción</th><th class="num">ISN experiencia</th><th class="num">Tendencia ISN</th>${ATRIBUTOS.map((a) => `<th class="num">ISN ${cap(a)}</th>`).join('')}</tr></thead><tbody>${
+      grupos.map((p) => `<tr><td>${escapar(p.g)}</td><td class="num">${p.x.n}</td><td class="num">${p.x.insTotal}</td><td class="num">${celdaTasa(p.x.tasa)}</td><td class="num">${isnTxt(p.x.isn)}</td><td class="num">${ppTxt(p.tend)}</td>${ATRIBUTOS.map((a) => `<td class="num">${isnTxt(p.x.atr[a])}</td>`).join('')}</tr>`).join('')
+    }</tbody></table>` : '<div class="vacio">Sin respuestas este mes</div>';
+  };
+  document.getElementById('t-go').innerHTML = tablaGrupo('gop', 'Gerente de operaciones');
+  document.getElementById('t-sgo').innerHTML = tablaGrupo('supervisor', 'Supervisor');
+}
+
+// ---------- Datos de ejemplo (?demo): 24 locales y 8 semanas, generados en el navegador ----------
+function datosDemo() {
+  let semilla = 7;
+  const azar = () => { semilla = (semilla * 16807) % 2147483647; return (semilla - 1) / 2147483646; };
+  const elegir = (lista) => lista[Math.floor(azar() * lista.length)];
+  const GO = ['GO Norte', 'GO Centro', 'GO Sur'];
+  const SGO = ['Supervisor 1', 'Supervisor 2', 'Supervisor 3', 'Supervisor 4', 'Supervisor 5', 'Supervisor 6', 'Supervisor 7', 'Supervisor 8'];
+  const nombres = ['Independencia', 'Curauma', 'Bulnes', 'Tamarugo', 'Alerce', 'Paseo Quilpué', 'Las Flores', 'Arauco Maipú', 'Plaza La Serena', 'Lider Arica', 'Portal La Reina', 'Arauco El Bosque', 'Manuel Montt', 'Zofri', 'Quillota', 'Vivo Coquimbo', 'El Rosal', 'Huérfanos', 'Jumbo Viña', 'Colón', 'Marbella', 'Recoleta', 'Piedra Roja', 'Plaza América'];
+  const locs = nombres.map((n, i) => ({ local: 'DK' + String(101 + i), nombre: n, marca: 'Dunkin', supervisor: SGO[i % 8], gop: GO[Math.floor((i % 8) / 3) % 3], calidad: 0.04 + azar() * 0.18 }));
+  const respuestas = [], trx = [];
+  const hoy = new Date(); hoy.setHours(12, 0, 0, 0);
+  for (let k = 56; k >= 1; k--) {
+    const fecha = new Date(hoy); fecha.setDate(hoy.getDate() - k);
+    const dia = diaDe(fecha);
+    locs.forEach((l) => {
+      const boletas = 90 + Math.floor(azar() * 160);
+      trx.push({ fecha: dia, local: l.local, trx: boletas });
+      const n = Math.max(2, Math.round(boletas * (0.06 + azar() * 0.06)));
+      for (let j = 0; j < n; j++) {
+        const u = azar();
+        const exp = u < l.calidad * 0.45 ? 'Muy insatisfecho' : u < l.calidad ? 'Insatisfecho' : u < l.calidad + 0.06 ? 'Indiferente' : u < 0.45 ? 'Satisfecho' : 'Muy satisfecho';
+        const atr = () => { const v = azar(); return v < l.calidad * 0.6 ? 'Insatisfecho' : v < l.calidad * 0.6 + 0.05 ? 'Indiferente' : v < 0.5 ? 'Satisfecho' : 'Muy satisfecho'; };
+        const inicio = new Date(fecha); inicio.setHours(8 + Math.floor(azar() * 13), Math.floor(azar() * 60));
+        respuestas.push({ id: 'demo-' + respuestas.length, local: l.local, marca: 'Dunkin', flujo: 'Actual', inicio: inicio.toISOString(), completada: azar() > 0.08, ultimo_paso: 'Gracias', duracion_seg: 20 + Math.floor(azar() * 40),
+          experiencia: exp, tipo_cliente: azar() < 0.1 ? 'Delivery' : 'Cliente', producto: elegir(['Donuts', 'Bebidas calientes', 'Bebidas frías', 'Sándwiches', 'Muffins']),
+          calidad: atr(), exactitud: atr(), velocidad: atr(), amabilidad: atr(), limpieza: atr(), nps: exp.includes('Insatisfecho') ? Math.floor(azar() * 7) : 7 + Math.floor(azar() * 4), comentario: '', acepta_ofertas: '' });
+      }
+    });
+  }
+  return { ok: true, respuestas, locales: locs.map(({ calidad, ...l }) => l), transacciones: trx };
+}
+
 function exportarCSV() {
   const filas = filtradas(true);
   const columnas = ['inicio', 'local', 'marca', 'flujo', 'completada', 'ultimo_paso', 'duracion_seg', 'experiencia', 'tipo_cliente', 'producto', 'calidad', 'exactitud', 'velocidad', 'amabilidad', 'limpieza', 'atributo_evaluado', 'motivos', 'nps', 'comentario', 'acepta_ofertas'];
@@ -443,6 +657,9 @@ function exportarCSV() {
 }
 
 ['f-marca', 'f-flujo', 'f-gop', 'f-supervisor', 'f-local', 'f-periodo', 'f-completas'].forEach((id) => document.getElementById(id).addEventListener('change', pintar));
+document.getElementById('t-dia').addEventListener('change', pintarTasa);
+document.getElementById('t-limite').addEventListener('input', pintarTasa);
+if (MODO_DEMO) document.getElementById('error').insertAdjacentHTML('beforebegin', '<div class="demo">Datos de ejemplo generados en el navegador: 24 locales y 8 semanas. No vienen de la planilla. <a href="dashboard.html">Ver los datos reales</a></div>');
 document.getElementById('btn-actualizar').addEventListener('click', cargar);
 document.getElementById('btn-csv').addEventListener('click', exportarCSV);
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => todas.length && pintar());
