@@ -20,8 +20,7 @@
 }
 .cab { padding-bottom: 22px; border-radius: 0 0 28px 28px; }
 .progreso span.lleno { background: #FFFFFF; }
-/* Logo de prototipo: óvalo rojo con el nombre. Reemplazar por el logo oficial cuando FAGASE lo entregue. */
-.logo-sv { display: inline-flex; align-items: center; justify-content: center; width: 120px; height: 52px; border-radius: 50%; background: #E30613; box-shadow: inset 0 0 0 3px #FFFFFF, 0 0 0 2px #1C5FA8; font: italic 800 22px 'Montserrat', sans-serif; color: #FFFFFF; letter-spacing: -0.5px; }
+.logo-sv { display: block; width: 84px; height: 68px; filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.18)); }
 </style>
 </head>
 <body>
@@ -29,7 +28,7 @@
 <script>
 window.MARCA = {
   clave: 'Savory', nombre: 'Savory',
-  logo: '<span class="logo-sv" role="img" aria-label="Savory">Savory</span>',
+  logo: '<img class="logo-sv" src="../img/marcas/savory-logo.webp" alt="Savory">',
   imagen: '<svg class="imagen" viewBox="0 0 160 200" width="160" height="200" aria-hidden="true"><path d="M50 98 L80 190 L110 98 Z" fill="#E9B872" stroke="#C98B3E" stroke-width="3" stroke-linejoin="round"/><path d="M58 112 L102 112 M64 130 L96 130 M70 148 L90 148" stroke="#C98B3E" stroke-width="3"/><circle cx="62" cy="84" r="26" fill="#F7B6C8"/><circle cx="98" cy="84" r="26" fill="#FFF1C9"/><circle cx="80" cy="56" r="28" fill="#8A5A3B"/><circle cx="72" cy="46" r="6" fill="#FFFFFF" opacity="0.35"/></svg>',
   textos: {
     pregunta: '¿Qué tal fue tu experiencia hoy?', positiva: '¡Qué rico! ¿Qué fue lo mejor?',
