@@ -124,7 +124,7 @@ function pintar() {
     const r = esc(p.volver);
     html += `<button class="zona" data-volver aria-label="Volver" style="left: ${r.x}px; top: ${r.y}px; width: ${r.w}px; height: ${r.h}px"></button>`;
   }
-  html += `<a class="menu-link" href="index.html">Menú del prototipo</a>`;
+  html += `<a class="menu-link" href="tablet.html">Menú del prototipo</a>`;
   escenario.innerHTML = html;
 
   escenario.querySelectorAll('[data-zona]').forEach((b) => {

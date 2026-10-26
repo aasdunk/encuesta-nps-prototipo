@@ -29,6 +29,7 @@
 <body>
 <div id="escenario"></div>
 <script src="js/config.js?v=10"></script>
+<script src="js/politica.js?v=11"></script>
 <script src="js/comun.js?v=10"></script>
 <script>
 const MAYUS = CARAS.map((c) => c.toUpperCase());
@@ -171,7 +172,7 @@ function pintar() {
     temporizadorGracias = setTimeout(() => { reiniciarEstado(); pintar(); }, (CONFIG.GRACIAS_SEG || 6) * 1000 + (verDatos ? 6000 : 0));
   }
   if (verDatos && n < GRACIAS) html += `<div class="dato"><span>DATO QUE SE GUARDA · ${DATOS[n]}</span></div>`;
-  escenario.innerHTML = html + '<a class="menu-link" href="index.html">Menú del prototipo</a>';
+  escenario.innerHTML = html + '<a class="menu-link" href="tablet.html">Menú del prototipo</a>';
 
   escenario.querySelectorAll('[data-cara]').forEach((b) => b.onclick = () => {
     const i = Number(b.dataset.cara);

@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#F26B0F">
+<title>Dunkin' · ¿Qué tal tu experiencia?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="../css/movil.css?v=11">
+<style>
+:root {
+  --fondo: #FCEFE6; --hoja: #FFFFFF; --tarjeta: #FFFFFF; --texto: #4A2C22; --texto-suave: #7A5A4E; --titulo: #F26B0F;
+  --primario: #E8178A; --sobre-primario: #FFFFFF; --borde: #EADDD6; --sel-fondo: #FDE7F2; --ofertas-fondo: #FFF4EC;
+  --cab-fondo: #FFFFFF; --cab-texto: #4A2C22; --progreso-vacio: #EADDD6;
+  --fuente: 'Fredoka', system-ui, sans-serif; --fuente-titulo: 'Fredoka', system-ui, sans-serif; --fuente-boton: 'Fredoka', system-ui, sans-serif;
+  --peso-titulo: 700; --mayus: none; --espaciado-titulo: 0; --mayus-boton: none; --espaciado-boton: 0;
+  --radio: 18px; --radio-chip: 999px; --radio-boton: 999px; --radio-campo: 12px;
+}
+.logo-dk { position: relative; width: 150px; height: 32px; overflow: hidden; }
+.logo-dk img { position: absolute; left: 0; top: -10px; width: 230px; height: 50px; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+window.MARCA = {
+  clave: 'Dunkin', nombre: "Dunkin'",
+  logo: '<div class="logo-dk"><img src="../img/marcas/dunkin-logo-productos.png" alt="Dunkin"></div>',
+  imagen: '<img class="imagen" src="../img/productos/04-cafe-con-dona.png" alt="">',
+  textos: {
+    pregunta: '¿Qué tal fue tu experiencia hoy?', positiva: '¡Qué bueno! ¿Qué fue lo mejor?',
+    neutra: '¿Qué podríamos hacer mejor?', negativa: 'Lo sentimos. ¿Qué falló?',
+    ofertas: '¿Quieres recibir ofertas y descuentos?', gracias: '¡Gracias!'
+  },
+  gusto: ['Calidad del producto', 'Rapidez de atención', 'Amabilidad del personal', 'Pedido correcto', 'Limpieza del local', 'Variedad de productos'],
+  mejorar: ['Calidad del producto', 'Demora en la atención', 'Atención del personal', 'Pedido incorrecto', 'Limpieza del local', 'Faltaban productos']
+};
+</script>
+<script src="../js/config.js?v=11"></script>
+<script src="../js/politica.js?v=11"></script>
+<script src="../js/movil.js?v=11"></script>
+</body>
+</html>

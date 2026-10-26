@@ -20,6 +20,9 @@
   --serie-1: #2a78d6;
   --serie-2: #eb6834;
   --serie-3: #1baf7a;
+  --serie-4: #eda100;
+  --serie-5: #e87ba4;
+  --serie-6: #008300;
   --div-pos-2: #256abf;
   --div-pos-1: #86b6ef;
   --div-neutro: #d6d5d0;
@@ -42,6 +45,9 @@
     --serie-1: #3987e5;
     --serie-2: #d95926;
     --serie-3: #199e70;
+    --serie-4: #c98a00;
+    --serie-5: #d06a92;
+    --serie-6: #2c9a2c;
     --div-pos-2: #6ea6ee;
     --div-pos-1: #2f5d93;
     --div-neutro: #5a5a55;
@@ -119,6 +125,7 @@ td.num, th.num { text-align: right; }
   <section class="filtros" aria-label="Filtros">
     <label>Marca<select id="f-marca"></select></label>
     <label>Flujo<select id="f-flujo"></select></label>
+    <label>Canal<select id="f-canal"></select></label>
     <label>Gerente de operaciones<select id="f-gop"></select></label>
     <label>Supervisor<select id="f-supervisor"></select></label>
     <label>Local<select id="f-local"></select></label>
@@ -205,14 +212,14 @@ td.num, th.num { text-align: right; }
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<script src="js/config.js?v=10"></script>
+<script src="js/config.js?v=11"></script>
 <script>
 const SATISFECHOS = ['Muy satisfecho', 'Satisfecho'];
 const INSATISFECHOS = ['Insatisfecho', 'Muy insatisfecho'];
 const CARAS = ['Muy satisfecho', 'Satisfecho', 'Indiferente', 'Insatisfecho', 'Muy insatisfecho'];
 const ATRIBUTOS = ['calidad', 'exactitud', 'velocidad', 'amabilidad', 'limpieza'];
 // Cada flujo tiene siempre el mismo color, sin importar los filtros
-const FLUJOS = ['Dunkin · Actual', 'Dunkin · Propuesto', "Jimmy John's · Propuesto"];
+const FLUJOS = ['Dunkin · QR', "Jimmy John's · QR", 'Savory · QR', 'Dunkin · Actual', 'Dunkin · Propuesto', "Jimmy John's · Propuesto"];
 
 const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
 const colorFlujo = (f) => css('--serie-' + (FLUJOS.indexOf(f) + 1)) || css('--texto-3');
@@ -288,6 +295,7 @@ async function cargar() {
 const FILTROS = [
   ['f-marca', 'Todas las marcas', (r) => r.marca],
   ['f-flujo', 'Todos los flujos', (r) => r.flujo],
+  ['f-canal', 'Todos los canales', (r) => r.canal || 'tablet'],
   ['f-gop', 'Todos', (r) => r.gop],
   ['f-supervisor', 'Todos', (r) => r.supervisor],
   ['f-local', 'Todos los locales', (r) => r.local]
@@ -656,7 +664,7 @@ function exportarCSV() {
   enlace.click();
 }
 
-['f-marca', 'f-flujo', 'f-gop', 'f-supervisor', 'f-local', 'f-periodo', 'f-completas'].forEach((id) => document.getElementById(id).addEventListener('change', pintar));
+['f-marca', 'f-flujo', 'f-canal', 'f-gop', 'f-supervisor', 'f-local', 'f-periodo', 'f-completas'].forEach((id) => document.getElementById(id).addEventListener('change', pintar));
 document.getElementById('t-dia').addEventListener('change', pintarTasa);
 document.getElementById('t-limite').addEventListener('input', pintarTasa);
 if (MODO_DEMO) document.getElementById('error').insertAdjacentHTML('beforebegin', '<div class="demo">Datos de ejemplo generados en el navegador: 24 locales y 8 semanas. No vienen de la planilla. <a href="dashboard.html">Ver los datos reales</a></div>');

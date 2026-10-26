@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>QR de prueba · Encuestas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&display=swap">
+<style>
+:root { color-scheme: light; --fondo: #F4F4F2; --hoja: #FFFFFF; --texto: #1F1F1F; --suave: #5C5C5C; --borde: #E2E1DC; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--fondo); color: var(--texto); font-family: 'Archivo', system-ui, sans-serif; }
+.app { max-width: 1180px; margin: 0 auto; padding: 24px 16px 48px; }
+header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 12px; margin-bottom: 20px; }
+h1 { margin: 0; font-size: 28px; font-weight: 800; }
+.sub { margin: 6px 0 0; max-width: 760px; color: var(--suave); line-height: 1.45; }
+.acciones { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn { height: 40px; padding: 0 16px; display: inline-flex; align-items: center; border-radius: 999px; border: 1px solid var(--borde); background: var(--hoja); color: var(--texto); font: 600 14px 'Archivo', sans-serif; text-decoration: none; cursor: pointer; }
+.marcas { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 16px; }
+.marca { background: var(--hoja); border: 1px solid var(--borde); border-radius: 18px; overflow: hidden; }
+.marca-cab { padding: 14px 18px; color: #FFFFFF; font-size: 20px; font-weight: 800; }
+.qrs { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 16px; }
+.qr { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
+.qr svg { width: 100%; max-width: 170px; height: auto; }
+.qr b { font-size: 14px; }
+.qr small { font-size: 11px; color: var(--suave); word-break: break-all; }
+.qr a { font-size: 13px; font-weight: 700; color: inherit; }
+.nota { margin-top: 24px; padding: 16px 18px; background: var(--hoja); border: 1px solid var(--borde); border-radius: 14px; color: var(--suave); line-height: 1.5; font-size: 14px; }
+@media print { .acciones, .nota { display: none; } body { background: #FFFFFF; } .marca { break-inside: avoid; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div>
+      <h1>QR de prueba</h1>
+      <p class="sub">Escanea con la cámara del celular. Cada marca tiene un QR para el afiche de la tienda y otro para el pie de la boleta. Ambos son fijos: llevan el código del local y el canal, y nunca cambian.</p>
+    </div>
+    <div class="acciones">
+      <a class="btn" href="index.html">← Menú del prototipo</a>
+      <button class="btn" type="button" onclick="window.print()">Imprimir</button>
+    </div>
+  </header>
+  <section class="marcas" id="marcas"></section>
+  <div class="nota">
+    <b>Cómo funciona:</b> la dirección de cada QR es la de la encuesta de la marca más dos datos, por ejemplo <code>dunkin/?l=DK101&amp;c=tienda</code>. <code>l</code> es el código del local (el mismo de la pestaña Locales de la planilla) y <code>c</code> el canal: <code>tienda</code> para el afiche y <code>boleta</code> para la boleta. Así el dashboard sabe de qué local y por qué canal llegó cada respuesta. Los locales de esta página son de ejemplo; con la lista real se generan los QR de todas las tiendas de una vez.
+  </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script>
+const MARCAS = [
+  { ruta: 'dunkin', nombre: "Dunkin'", local: 'DK101', color: '#F26B0F' },
+  { ruta: 'jj', nombre: "Jimmy John's", local: 'JJ101', color: '#EA0029' },
+  { ruta: 'savory', nombre: 'Savory', local: 'SV101', color: '#303AB2' }
+];
+const CANALES = [['tienda', 'Afiche de la tienda'], ['boleta', 'Pie de la boleta']];
+const e = (t) => String(t).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+function qrSVG(texto) {
+  const q = qrcode(0, 'M');
+  q.addData(texto);
+  q.make();
+  return q.createSvgTag({ cellSize: 5, margin: 2, scalable: true });
+}
+
+document.getElementById('marcas').innerHTML = MARCAS.map((m) => `
+  <article class="marca">
+    <div class="marca-cab" style="background: ${m.color}">${e(m.nombre)} · local de ejemplo ${m.local}</div>
+    <div class="qrs">${CANALES.map(([canal, etiqueta]) => {
+      const url = new URL(`${m.ruta}/?l=${m.local}&c=${canal}`, location.href).href;
+      return `<div class="qr">${qrSVG(url)}<b>${etiqueta}</b><small>${e(url)}</small><a href="${e(url)}">Abrir en este equipo</a></div>`;
+    }).join('')}</div>
+  </article>`).join('');
+</script>
+</body>
+</html>

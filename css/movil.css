@@ -1,0 +1,58 @@
+/* Encuesta para celular. Cada marca define sus colores y fuentes como variables en su página. */
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { min-height: 100vh; min-height: 100dvh; background: var(--fondo); color: var(--texto); font-family: var(--fuente); -webkit-tap-highlight-color: transparent; }
+#app { max-width: 480px; min-height: 100vh; min-height: 100dvh; margin: 0 auto; display: flex; flex-direction: column; background: var(--hoja); }
+button { font-family: inherit; cursor: pointer; }
+
+.cab { display: grid; grid-template-columns: 44px 1fr 44px; align-items: center; gap: 8px; padding: 14px 16px; background: var(--cab-fondo); }
+.logo { display: flex; justify-content: center; align-items: center; min-height: 40px; }
+.volver, .volver-vacio { width: 44px; height: 44px; }
+.volver { border: none; border-radius: 999px; background: transparent; font-size: 24px; color: var(--cab-texto); }
+.progreso { display: flex; gap: 4px; justify-self: end; }
+.progreso span { width: 10px; height: 10px; border-radius: 999px; background: var(--progreso-vacio); }
+.progreso span.lleno { background: var(--primario); }
+
+.cuerpo { flex: 1; display: flex; flex-direction: column; gap: 14px; padding: 20px 20px 28px; }
+h1 { margin: 6px 0 0; font-family: var(--fuente-titulo); font-size: 28px; line-height: 1.15; font-weight: var(--peso-titulo); color: var(--titulo); text-transform: var(--mayus); letter-spacing: var(--espaciado-titulo); }
+h2 { margin: 0; font-family: var(--fuente-titulo); font-size: 21px; font-weight: var(--peso-titulo); color: var(--titulo); text-transform: var(--mayus); letter-spacing: var(--espaciado-titulo); }
+.sub { margin: 0; font-size: 15px; line-height: 1.4; color: var(--texto-suave); }
+
+.caras { display: flex; flex-direction: column; gap: 10px; margin-top: 6px; }
+.cara-fila { display: flex; align-items: center; gap: 16px; min-height: 68px; padding: 8px 16px; border: 2px solid var(--borde); border-radius: var(--radio); background: var(--tarjeta); font-size: 18px; font-weight: 600; color: var(--texto); text-align: left; transition: transform 0.12s, border-color 0.12s; }
+.cara-fila:active, .cara-fila.tocado { transform: scale(0.98); border-color: var(--primario); background: var(--sel-fondo); }
+.cara-elegida { display: flex; align-items: center; gap: 10px; font-size: 15px; font-weight: 600; color: var(--texto-suave); }
+
+.chips { display: flex; flex-wrap: wrap; gap: 10px; }
+.chip { min-height: 48px; padding: 10px 16px; border: 2px solid var(--borde); border-radius: var(--radio-chip); background: var(--tarjeta); font-size: 16px; font-weight: 600; color: var(--texto); }
+.chip.sel { border-color: var(--primario); background: var(--primario); color: var(--sobre-primario); }
+
+.principal { margin-top: auto; min-height: 56px; border: none; border-radius: var(--radio-boton); background: var(--primario); color: var(--sobre-primario); font-family: var(--fuente-boton); font-size: 19px; font-weight: 700; text-transform: var(--mayus-boton); letter-spacing: var(--espaciado-boton); }
+.principal:disabled { opacity: 0.4; cursor: default; }
+
+textarea, input[type="text"], input[type="email"] { width: 100%; padding: 12px 14px; border: 2px solid var(--borde); border-radius: var(--radio-campo); background: var(--tarjeta); color: var(--texto); font: 16px var(--fuente); }
+textarea { resize: vertical; min-height: 104px; }
+textarea:focus, input:focus { outline: none; border-color: var(--primario); }
+.ofertas { display: flex; flex-direction: column; gap: 10px; padding: 16px; border-radius: var(--radio); background: var(--ofertas-fondo); }
+.ofertas label { display: flex; flex-direction: column; gap: 6px; font-size: 14px; font-weight: 700; color: var(--texto); }
+.ofertas label.consent { flex-direction: row; align-items: flex-start; gap: 10px; font-weight: 500; line-height: 1.4; }
+.consent input { flex: none; width: 24px; height: 24px; margin: 0; accent-color: var(--primario); }
+.enlace { padding: 0; border: none; background: none; font: inherit; font-weight: 700; color: var(--primario); text-decoration: underline; }
+.error-form { margin: 0; min-height: 0; font-size: 14px; font-weight: 600; color: #C62828; }
+.error-form:empty { display: none; }
+
+.gracias { align-items: center; justify-content: center; text-align: center; }
+.gracias h1 { font-size: 34px; }
+.gracias .imagen { max-width: 220px; max-height: 240px; }
+
+.pie { padding: 14px 16px 20px; text-align: center; font-size: 12px; color: var(--texto-suave); }
+.pie a { color: inherit; }
+
+/* Política de privacidad a pantalla completa en el celular */
+.politica { position: fixed; inset: 0; z-index: 20; display: flex; align-items: flex-end; justify-content: center; background: rgba(0, 0, 0, 0.5); }
+.politica-caja { width: 100%; max-width: 480px; max-height: 88dvh; display: flex; flex-direction: column; gap: 10px; padding: 22px 20px 20px; background: #FFFFFF; border-radius: 20px 20px 0 0; font-family: system-ui, sans-serif; color: #1F1F1F; }
+.politica-caja h2 { font-family: system-ui, sans-serif; font-size: 19px; font-weight: 800; color: #1F1F1F; text-transform: none; letter-spacing: 0; }
+.politica-texto { overflow-y: auto; font-size: 15px; line-height: 1.45; }
+.politica-texto p { margin: 0 0 10px; }
+.politica-version { margin: 0; font-size: 12px; color: #6B6B6B; }
+.politica-cerrar { min-height: 50px; border: none; border-radius: 999px; background: #1F1F1F; color: #FFFFFF; font: 700 17px system-ui, sans-serif; }
