@@ -7,33 +7,67 @@
 <meta name="theme-color" content="#3FA8F4">
 <title>Savory · ¿Qué tal tu experiencia?</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,500;0,600;0,700;0,800;1,800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800;900&display=swap">
 <link rel="stylesheet" href="../css/movil.css?v=11">
 <style>
 :root {
-  --fondo: #3FA8F4; --hoja: #FFFFFF; --tarjeta: #FFFFFF; --texto: #212773; --texto-suave: #4A5394; --titulo: #212773;
-  --primario: #303AB2; --sobre-primario: #FFFFFF; --borde: #BBE5FF; --sel-fondo: #EAF6FF; --ofertas-fondo: #EAF6FF;
-  --cab-fondo: #3FA8F4; --cab-texto: #FFFFFF; --progreso-vacio: rgba(255, 255, 255, 0.5);
+  --fondo: #3FA8F4; --hoja: transparent; --tarjeta: #F2F9FF; --texto: #212773; --texto-suave: #4A5394; --titulo: #212773;
+  --primario: #303AB2; --sobre-primario: #FFFFFF; --borde: #CFEAFF; --sel-fondo: #E3F2FF; --ofertas-fondo: #F2F9FF;
+  --cab-fondo: transparent; --cab-texto: #FFFFFF; --progreso-vacio: rgba(255, 255, 255, 0.45);
   --fuente: 'Montserrat', system-ui, sans-serif; --fuente-titulo: 'Montserrat', system-ui, sans-serif; --fuente-boton: 'Montserrat', system-ui, sans-serif;
-  --peso-titulo: 800; --mayus: none; --espaciado-titulo: 0; --mayus-boton: none; --espaciado-boton: 0;
-  --radio: 20px; --radio-chip: 999px; --radio-boton: 999px; --radio-campo: 14px;
+  --peso-titulo: 900; --mayus: none; --espaciado-titulo: -0.3px; --mayus-boton: none; --espaciado-boton: 0;
+  --radio: 22px; --radio-chip: 999px; --radio-boton: 999px; --radio-campo: 14px;
 }
-.cab { padding-bottom: 22px; border-radius: 0 0 28px 28px; }
+/* Cielo celeste con burbujas suaves, como savory.cl */
+body {
+  background:
+    radial-gradient(circle at 12% 8%, rgba(255, 255, 255, 0.28) 0 38px, transparent 39px),
+    radial-gradient(circle at 88% 4%, rgba(255, 255, 255, 0.18) 0 60px, transparent 61px),
+    radial-gradient(circle at 70% 22%, rgba(255, 255, 255, 0.16) 0 16px, transparent 17px),
+    linear-gradient(180deg, #5DBDF8 0%, #3FA8F4 45%, #2F95E6 100%);
+  background-attachment: fixed;
+}
+.cab { position: relative; padding: 18px 16px 40px; }
+.logo-sv { display: block; width: 112px; height: 90px; filter: drop-shadow(0 4px 8px rgba(17, 40, 120, 0.25)); }
 .progreso span.lleno { background: #FFFFFF; }
-.logo-sv { display: block; width: 84px; height: 68px; filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.18)); }
+.deco { position: absolute; bottom: -18px; z-index: 0; pointer-events: none; filter: drop-shadow(0 4px 6px rgba(17, 40, 120, 0.2)); }
+.deco-izq { left: 22px; width: 38px; transform: rotate(-14deg); }
+.deco-der { right: 20px; width: 46px; transform: rotate(12deg); }
+
+/* Hoja blanca que sube sobre el cielo, con bordes redondeados */
+.cuerpo { position: relative; z-index: 1; margin-top: -16px; padding-top: 26px; background: #FFFFFF; border-radius: 34px 34px 0 0; box-shadow: 0 -8px 24px rgba(17, 40, 120, 0.14); }
+.pie { background: #FFFFFF; }
+h1 .rojo, h2 .rojo { color: #E30613; }
+h1 { font-size: 29px; }
+
+.cara-fila { border-color: transparent; background: var(--tarjeta); box-shadow: 0 2px 0 #D8EEFF; }
+.cara-fila:active, .cara-fila.tocado { border-color: var(--primario); background: var(--sel-fondo); }
+.chip { border-color: var(--borde); background: var(--tarjeta); color: var(--texto); }
+.chip.sel { border-color: var(--primario); background: var(--primario); color: #FFFFFF; box-shadow: 0 4px 10px rgba(48, 58, 178, 0.3); }
+.principal { min-height: 58px; box-shadow: 0 6px 14px rgba(48, 58, 178, 0.32); font-weight: 800; }
+.principal:disabled { box-shadow: none; }
+.ofertas { border: 2px dashed #BFE2FF; }
+textarea, input[type="text"], input[type="email"] { background: #FFFFFF; }
+
+.gracias h1 { font-size: 40px; }
+.gracias .imagen { width: 170px; height: auto; max-height: none; filter: drop-shadow(0 8px 14px rgba(17, 40, 120, 0.18)); }
 </style>
 </head>
 <body>
 <div id="app"></div>
 <script>
+// Ilustraciones simples de helado (paleta y cono) para acompañar el logo
+const PALETA = '<svg class="deco deco-izq" viewBox="0 0 64 128" aria-hidden="true"><rect x="27" y="84" width="10" height="40" rx="5" fill="#F1D3A1"/><rect x="8" y="6" width="48" height="86" rx="24" fill="#FF8FB1"/><path d="M8 34 Q8 6 32 6 Q56 6 56 34 L56 44 Q49 52 42 44 Q35 54 28 44 Q20 52 14 46 Q10 47 8 44 Z" fill="#6B3E26"/><rect x="15" y="24" width="6" height="40" rx="3" fill="#FFFFFF" opacity="0.35"/></svg>';
+const CONO = '<svg class="deco deco-der" viewBox="0 0 80 128" aria-hidden="true"><path d="M17 60 L40 124 L63 60 Z" fill="#F2C27A" stroke="#D89A45" stroke-width="2.5" stroke-linejoin="round"/><path d="M25 76 L55 76 M31 92 L49 92" stroke="#D89A45" stroke-width="2.5"/><circle cx="40" cy="44" r="25" fill="#FFF3D6"/><path d="M15 50 Q22 60 30 52 Q38 62 46 52 Q54 62 65 50 L65 60 L15 60 Z" fill="#FFF3D6"/><rect x="28" y="30" width="7" height="3" rx="1.5" fill="#E30613" transform="rotate(-25 31 31)"/><rect x="44" y="36" width="7" height="3" rx="1.5" fill="#3FA8F4" transform="rotate(30 47 37)"/><rect x="36" y="50" width="7" height="3" rx="1.5" fill="#FFB800"/><circle cx="31" cy="38" r="5" fill="#FFFFFF" opacity="0.7"/></svg>';
+const COPA = '<svg class="imagen" viewBox="0 0 200 250" aria-hidden="true"><path d="M58 128 L100 244 L142 128 Z" fill="#F2C27A" stroke="#D89A45" stroke-width="4" stroke-linejoin="round"/><path d="M70 152 L130 152 M78 176 L122 176 M86 200 L114 200 M76 132 L112 236 M124 132 L88 236" stroke="#D89A45" stroke-width="3" opacity="0.7"/><circle cx="72" cy="112" r="34" fill="#FF8FB1"/><circle cx="128" cy="112" r="34" fill="#FFF3D6"/><circle cx="100" cy="72" r="38" fill="#6B3E26"/><path d="M40 118 Q50 136 64 124 Q78 140 92 126 Q106 142 120 126 Q134 140 148 124 Q156 132 162 118 L162 130 L40 130 Z" fill="#FFF3D6"/><circle cx="100" cy="28" r="12" fill="#E30613"/><path d="M100 16 Q104 4 114 2" stroke="#3E7A2E" stroke-width="3" fill="none" stroke-linecap="round"/><rect x="82" y="58" width="12" height="4" rx="2" fill="#FFB800" transform="rotate(-20 88 60)"/><rect x="108" y="66" width="12" height="4" rx="2" fill="#3FA8F4" transform="rotate(25 114 68)"/><rect x="94" y="84" width="12" height="4" rx="2" fill="#FFFFFF"/><rect x="60" y="100" width="10" height="4" rx="2" fill="#FFFFFF" transform="rotate(30 65 102)"/><rect x="128" y="98" width="10" height="4" rx="2" fill="#E30613" transform="rotate(-30 133 100)"/><circle cx="86" cy="58" r="9" fill="#FFFFFF" opacity="0.25"/><circle cx="62" cy="100" r="8" fill="#FFFFFF" opacity="0.4"/></svg>';
 window.MARCA = {
   clave: 'Savory', nombre: 'Savory',
-  logo: '<img class="logo-sv" src="../img/marcas/savory-logo.webp" alt="Savory">',
-  imagen: '<svg class="imagen" viewBox="0 0 160 200" width="160" height="200" aria-hidden="true"><path d="M50 98 L80 190 L110 98 Z" fill="#E9B872" stroke="#C98B3E" stroke-width="3" stroke-linejoin="round"/><path d="M58 112 L102 112 M64 130 L96 130 M70 148 L90 148" stroke="#C98B3E" stroke-width="3"/><circle cx="62" cy="84" r="26" fill="#F7B6C8"/><circle cx="98" cy="84" r="26" fill="#FFF1C9"/><circle cx="80" cy="56" r="28" fill="#8A5A3B"/><circle cx="72" cy="46" r="6" fill="#FFFFFF" opacity="0.35"/></svg>',
+  logo: PALETA + '<img class="logo-sv" src="../img/marcas/savory-logo.webp" alt="Savory">' + CONO,
+  imagen: COPA,
   textos: {
-    pregunta: '¿Qué tal fue tu experiencia hoy?', positiva: '¡Qué rico! ¿Qué fue lo mejor?',
-    neutra: '¿Qué podríamos hacer mejor?', negativa: 'Lo sentimos. ¿Qué falló?',
-    ofertas: '¿Quieres recibir ofertas y descuentos?', gracias: '¡Gracias!'
+    pregunta: '¿Qué tal fue tu <span class="rojo">experiencia</span> hoy?', positiva: '¡Qué rico! ¿Qué fue <span class="rojo">lo mejor?</span>',
+    neutra: '¿Qué podríamos <span class="rojo">hacer mejor?</span>', negativa: 'Lo sentimos. <span class="rojo">¿Qué falló?</span>',
+    ofertas: '¿Quieres recibir <span class="rojo">ofertas y descuentos?</span>', gracias: '¡Gracias!'
   },
   gusto: ['Sabor del helado', 'Variedad de sabores', 'Textura y temperatura', 'Atención del personal', 'Rapidez', 'Limpieza del local'],
   mejorar: ['Sabor del helado', 'Pocos sabores disponibles', 'Textura o temperatura', 'Atención del personal', 'Demora en la atención', 'Limpieza del local']
