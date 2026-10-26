@@ -621,7 +621,7 @@ function datosDemo() {
   const GO = ['GO Norte', 'GO Centro', 'GO Sur'];
   const SGO = ['Supervisor 1', 'Supervisor 2', 'Supervisor 3', 'Supervisor 4', 'Supervisor 5', 'Supervisor 6', 'Supervisor 7', 'Supervisor 8'];
   const nombres = ['Independencia', 'Curauma', 'Bulnes', 'Tamarugo', 'Alerce', 'Paseo Quilpué', 'Las Flores', 'Arauco Maipú', 'Plaza La Serena', 'Lider Arica', 'Portal La Reina', 'Arauco El Bosque', 'Manuel Montt', 'Zofri', 'Quillota', 'Vivo Coquimbo', 'El Rosal', 'Huérfanos', 'Jumbo Viña', 'Colón', 'Marbella', 'Recoleta', 'Piedra Roja', 'Plaza América'];
-  const locs = nombres.map((n, i) => ({ local: 'DK' + String(101 + i), nombre: n, marca: 'Dunkin', supervisor: SGO[i % 8], gop: GO[Math.floor((i % 8) / 3) % 3], calidad: 0.04 + azar() * 0.18 }));
+  const locs = nombres.map((n, i) => ({ local: 'DK' + String(101 + i), nombre: n, marca: 'Dunkin', supervisor: SGO[i % 8], gop: GO[Math.floor((i % 8) / 3) % 3], calidad: 0.015 + azar() * 0.07 }));
   const respuestas = [], trx = [];
   const hoy = new Date(); hoy.setHours(12, 0, 0, 0);
   for (let k = 56; k >= 1; k--) {
