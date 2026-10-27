@@ -170,9 +170,6 @@ body { border-top: 5px solid var(--marca); transition: border-color 0.3s; }
       <option value="mesant">Mes anterior</option>
       <option value="todo" selected>Todo</option>
     </select></label>
-    <label>Tipo de cliente<select id="f-tipo"></select></label>
-    <label>Canal<select id="f-canal"></select></label>
-    <label>Encuesta<select id="f-flujo"></select></label>
     <label class="check"><input type="checkbox" id="f-completas"> Solo encuestas completas</label>
   </section>
 
@@ -231,7 +228,7 @@ body { border-top: 5px solid var(--marca); transition: border-color 0.3s; }
       <div class="card"><h3>Lo que más gustó <span class="ayuda" tabindex="0" data-ayuda="Opciones elegidas por clientes satisfechos o muy satisfechos. Un cliente puede elegir varias.">?</span></h3><div class="lienzo"><canvas id="g-gusto"></canvas></div></div>
     </div>
     <div class="grid">
-      <div class="card"><h3>Cómo se reparten las respuestas <span class="ayuda" tabindex="0" data-ayuda="Porcentaje de clientes en cada carita, por marca y tipo de encuesta. Entre paréntesis, el ISN.">?</span></h3><div class="lienzo"><canvas id="g-experiencia"></canvas></div></div>
+      <div class="card"><h3>Cómo se reparten las respuestas <span class="ayuda" tabindex="0" data-ayuda="Porcentaje de clientes en cada carita, por marca. Entre paréntesis, el ISN.">?</span></h3><div class="lienzo"><canvas id="g-experiencia"></canvas></div></div>
       <div class="card" data-ocultable><h3>NPS por encuesta <span class="ayuda" tabindex="0" data-ayuda="Solo para las encuestas que preguntan la nota de 0 a 10. NPS = % de notas 9-10 menos % de notas 0-6.">?</span></h3><div class="lienzo"><canvas id="g-nps"></canvas></div></div>
     </div>
     <div class="grid">
@@ -273,7 +270,7 @@ body { border-top: 5px solid var(--marca); transition: border-color 0.3s; }
     </div></div>
     <div class="grid">
       <div class="card"><h3>¿Dónde se abandona la encuesta?</h3><div class="lienzo"><canvas id="g-abandono"></canvas></div></div>
-      <div class="card"><h3>Comparación de encuestas <span class="ayuda" tabindex="0" data-ayuda="Cada fila es una marca y versión de la encuesta (QR por celular o la tablet anterior).">?</span></h3><div class="tabla" id="t-flujos"></div></div>
+      <div class="card"><h3>Comparación por marca <span class="ayuda" tabindex="0" data-ayuda="Cómo rinde la encuesta en cada marca: respuestas, satisfacción, abandono, duración y contactos.">?</span></h3><div class="tabla" id="t-flujos"></div></div>
     </div>
   </section>
 
@@ -292,10 +289,11 @@ const INSATISFECHOS = ['Insatisfecho', 'Muy insatisfecho'];
 const CARAS = ['Muy satisfecho', 'Satisfecho', 'Indiferente', 'Insatisfecho', 'Muy insatisfecho'];
 const ATRIBUTOS = ['calidad', 'exactitud', 'velocidad', 'amabilidad', 'limpieza'];
 // Cada flujo tiene siempre el mismo color, sin importar los filtros
-const FLUJOS = ['Dunkin · QR', "Jimmy John's · QR", 'Savory · QR', 'Dunkin · Actual', 'Dunkin · Propuesto', "Jimmy John's · Propuesto"];
+// Solo encuestas por QR: cada marca es una serie, siempre con el mismo color
+const FLUJOS = ['Dunkin', "Jimmy John's", 'Savory'];
 
 const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
-const colorFlujo = (f) => css('--serie-' + (FLUJOS.indexOf(f) + 1)) || css('--texto-3');
+const colorFlujo = (f) => ({ 'Dunkin': '#F26B0F', "Jimmy John's": '#E4002B', 'Savory': '#3FA8F4' })[f] || css('--texto-3');
 const pct = (x) => (x === null || isNaN(x) ? '—' : Math.round(x * 100) + '%');
 const num = (x) => (x === null || isNaN(x) ? '—' : (x > 0 ? '+' : '') + Math.round(x * 100));
 const escapar = (t) => String(t === undefined || t === null ? '' : t).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -333,7 +331,7 @@ function normalizar(r) {
   const loc = locales[r.local] || {};
   return Object.assign({}, r, {
     local: r.local || 'SIN-LOCAL',
-    flujoClave: `${r.marca} · ${r.flujo}`,
+    flujoClave: r.marca,
     completada: r.completada === true || r.completada === 'TRUE',
     fecha: new Date(r.inicio || r.recibido),
     nombreLocal: loc.nombre || '',
@@ -352,7 +350,8 @@ async function cargar() {
     locales = {};
     (datos.locales || []).forEach((l) => { locales[l.local] = l; });
     transacciones = datos.transacciones || [];
-    todas = (datos.respuestas || []).map(normalizar);
+    // El dashboard muestra solo las encuestas por QR; las respuestas del prototipo de tablet quedan fuera
+    todas = (datos.respuestas || []).filter((r) => r.flujo === 'QR').map(normalizar);
     document.getElementById('error').style.display = 'none';
     estado.textContent = `${todas.length} respuestas en total · actualizado ${new Date().toLocaleString('es-CL')}`;
     llenarFiltros();
@@ -367,22 +366,19 @@ async function cargar() {
 
 const FILTROS = [
   ['f-marca', 'Todas las marcas (multimarca)', (r) => r.marca],
-  ['f-flujo', 'Todas', (r) => r.flujo],
-  ['f-canal', 'Todos los canales', (r) => r.canal || 'tablet'],
-  ['f-tipo', 'Todos', (r) => r.tipo_cliente || 'Sin dato'],
   ['f-gop', 'Todos', (r) => r.gop],
   ['f-supervisor', 'Todos', (r) => r.supervisor],
   ['f-local', 'Todos los locales', (r) => r.local]
 ];
 // Nombres más claros para las versiones de la encuesta
 const NOMBRE_FLUJO = { QR: 'Celular (QR)', Actual: 'Tablet actual (GM)', Propuesto: 'Tablet propuesta' };
-const nombreFlujo = (f) => String(f).replace(/ · (QR|Actual|Propuesto)$/, (m, k) => ' · ' + NOMBRE_FLUJO[k]);
+const nombreFlujo = (f) => f;
 function llenarFiltros() {
   FILTROS.forEach(([id, todos, campo]) => {
     const sel = document.getElementById(id);
     const actual = sel.value;
     const valores = [...new Set(todas.map(campo).filter(Boolean))].sort();
-    const etiqueta = (v) => (id === 'f-flujo' ? NOMBRE_FLUJO[v] || v : v) + (id === 'f-local' && locales[v] ? ' · ' + locales[v].nombre : '');
+    const etiqueta = (v) => v + (id === 'f-local' && locales[v] ? ' · ' + locales[v].nombre : '');
     sel.innerHTML = `<option value="">${todos}</option>` + valores.map((v) => `<option value="${escapar(v)}">${escapar(etiqueta(v))}</option>`).join('');
     if (valores.includes(actual)) sel.value = actual;
   });
@@ -570,7 +566,7 @@ function pintar() {
     }).join('')
   }</tbody></table>`;
 
-  // Ranking de locales con estado de la tablet
+  // Ranking de locales con su actividad
   const ahora = Date.now();
   const filasLocales = [...new Set(base.map((r) => r.local))].map((l) => {
     const b = base.filter((r) => r.local === l);
@@ -599,8 +595,8 @@ function pintar() {
 
   // Detalle de respuestas, como la tabla de respuestas de Global Metrics
   const detalle = [...base].sort((a, b) => b.fecha - a.fecha).slice(0, 100);
-  document.getElementById('t-detalle').innerHTML = detalle.length ? `<table><thead><tr><th>Fecha</th><th>Marca</th><th>Tienda</th><th>Canal</th><th>Encuesta</th><th>Experiencia</th><th>Destacó o falló</th><th>Comentario</th><th>Dejó contacto</th><th>Completa</th></tr></thead><tbody>${
-    detalle.map((r) => `<tr><td>${r.fecha.toLocaleString('es-CL')}</td><td><span class="punto" style="background:${MARCAS_COLOR[r.marca] || 'var(--texto-3)'}"></span>${escapar(r.marca)}</td><td>${nombreTienda(r.local)}</td><td>${escapar(r.canal || 'tablet')}</td><td>${escapar(NOMBRE_FLUJO[r.flujo] || r.flujo)}</td><td>${r.experiencia ? `<span class="estado" style="color:${colorCara(r.experiencia)}">${escapar(r.experiencia)}</span>` : '—'}</td><td class="texto">${escapar(sinPrefijo(r.motivos))}</td><td class="texto">${escapar(r.comentario)}</td><td>${r.acepta_ofertas === 'Sí' ? 'Sí' : 'No'}</td><td>${r.completada ? 'Sí' : 'No'}</td></tr>`).join('')
+  document.getElementById('t-detalle').innerHTML = detalle.length ? `<table><thead><tr><th>Fecha</th><th>Marca</th><th>Tienda</th><th>Experiencia</th><th>Destacó o falló</th><th>Comentario</th><th>Dejó contacto</th><th>Completa</th></tr></thead><tbody>${
+    detalle.map((r) => `<tr><td>${r.fecha.toLocaleString('es-CL')}</td><td><span class="punto" style="background:${MARCAS_COLOR[r.marca] || 'var(--texto-3)'}"></span>${escapar(r.marca)}</td><td>${nombreTienda(r.local)}</td><td>${r.experiencia ? `<span class="estado" style="color:${colorCara(r.experiencia)}">${escapar(r.experiencia)}</span>` : '—'}</td><td class="texto">${escapar(sinPrefijo(r.motivos))}</td><td class="texto">${escapar(r.comentario)}</td><td>${r.acepta_ofertas === 'Sí' ? 'Sí' : 'No'}</td><td>${r.completada ? 'Sí' : 'No'}</td></tr>`).join('')
   }</tbody></table>` : '<div class="vacio">Sin respuestas para este filtro</div>';
 }
 
@@ -823,7 +819,7 @@ function exportarCSV() {
   enlace.click();
 }
 
-['f-marca', 'f-flujo', 'f-canal', 'f-tipo', 'f-gop', 'f-supervisor', 'f-local', 'f-periodo', 'f-completas'].forEach((id) => document.getElementById(id).addEventListener('change', pintar));
+['f-marca', 'f-gop', 'f-supervisor', 'f-local', 'f-periodo', 'f-completas'].forEach((id) => document.getElementById(id).addEventListener('change', pintar));
 document.getElementById('t-dia').addEventListener('change', pintarTasa);
 document.getElementById('t-limite').addEventListener('input', pintarTasa);
 if (MODO_DEMO) document.getElementById('error').insertAdjacentHTML('beforebegin', '<div class="demo">Datos de ejemplo generados en el navegador: 3 marcas, 24 tiendas y 13 meses. No vienen de la planilla. <a href="dashboard.html">Ver los datos reales</a></div>');
