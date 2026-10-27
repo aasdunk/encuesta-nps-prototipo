@@ -22,7 +22,7 @@ h1 { margin: 0; font-size: 28px; font-weight: 800; }
 .marca-cab { padding: 14px 18px; color: #FFFFFF; font-size: 20px; font-weight: 800; }
 .qrs { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 16px; }
 .qr { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
-.qr svg { width: 100%; max-width: 170px; height: auto; }
+.qr img { width: 100%; max-width: 190px; height: auto; image-rendering: pixelated; }
 .qr b { font-size: 14px; }
 .qr small { font-size: 11px; color: var(--suave); word-break: break-all; }
 .qr a { font-size: 13px; font-weight: 700; color: inherit; }
@@ -49,29 +49,54 @@ h1 { margin: 0; font-size: 28px; font-weight: 800; }
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
 <script>
+// Logo de cada marca al centro del QR. "recorte" toma solo la parte del archivo que es el logo;
+// "ancho" es la fracción del QR que ocupa (el nivel H de corrección tolera hasta ~30% tapado).
 const MARCAS = [
-  { ruta: 'dunkin', nombre: "Dunkin'", local: 'DK101', color: '#F26B0F' },
-  { ruta: 'jj', nombre: "Jimmy John's", local: 'JJ101', color: '#EA0029' },
-  { ruta: 'savory', nombre: 'Savory', local: 'SV101', color: '#303AB2' }
+  { ruta: 'dunkin', nombre: "Dunkin'", local: 'DK101', color: '#F26B0F', logo: { src: 'img/marcas/dunkin-logo-productos.png', recorte: [26, 38, 630, 145], ancho: 0.44 } },
+  { ruta: 'jj', nombre: "Jimmy John's", local: 'JJ101', color: '#E4002B', logo: { src: 'img/marcas/jj-sello.png', ancho: 0.24, redondo: true } },
+  { ruta: 'savory', nombre: 'Savory', local: 'SV101', color: '#303AB2', logo: { src: 'img/marcas/savory-logo.webp', ancho: 0.27 } }
 ];
 const CANALES = [['tienda', 'Afiche de la tienda'], ['boleta', 'Pie de la boleta']];
 const e = (t) => String(t).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const cargar = (src) => new Promise((ok, mal) => { const i = new Image(); i.onload = () => ok(i); i.onerror = mal; i.src = src; });
 
-function qrSVG(texto) {
-  const q = qrcode(0, 'M');
+// Dibuja el QR en un lienzo con el logo encima, sobre un fondo blanco redondeado
+function qrConLogo(texto, logo, img) {
+  const q = qrcode(0, 'H');
   q.addData(texto);
   q.make();
-  return q.createSvgTag({ cellSize: 5, margin: 2, scalable: true });
+  const n = q.getModuleCount(), celda = 12, margen = 4 * celda, lado = n * celda + 2 * margen;
+  const c = document.createElement('canvas');
+  c.width = c.height = lado;
+  const g = c.getContext('2d');
+  g.fillStyle = '#FFFFFF'; g.fillRect(0, 0, lado, lado);
+  g.fillStyle = '#111111';
+  for (let f = 0; f < n; f++) for (let k = 0; k < n; k++) if (q.isDark(f, k)) g.fillRect(margen + k * celda, margen + f * celda, celda, celda);
+
+  const [sx, sy, sw, sh] = logo.recorte || [0, 0, img.naturalWidth, img.naturalHeight];
+  const w = lado * logo.ancho, h = w * sh / sw, pad = celda * 0.8;
+  const x = (lado - w) / 2, y = (lado - h) / 2;
+  g.fillStyle = '#FFFFFF';
+  g.beginPath();
+  if (logo.redondo) g.arc(lado / 2, lado / 2, w / 2 + pad, 0, Math.PI * 2);
+  else g.roundRect(x - pad, y - pad, w + 2 * pad, h + 2 * pad, celda * 1.5);
+  g.fill();
+  g.drawImage(img, sx, sy, sw, sh, x, y, w, h);
+  return c.toDataURL('image/png');
 }
 
-document.getElementById('marcas').innerHTML = MARCAS.map((m) => `
-  <article class="marca">
-    <div class="marca-cab" style="background: ${m.color}">${e(m.nombre)} · local de ejemplo ${m.local}</div>
-    <div class="qrs">${CANALES.map(([canal, etiqueta]) => {
-      const url = new URL(`${m.ruta}/?l=${m.local}&c=${canal}`, location.href).href;
-      return `<div class="qr">${qrSVG(url)}<b>${etiqueta}</b><small>${e(url)}</small><a href="${e(url)}">Abrir en este equipo</a></div>`;
-    }).join('')}</div>
-  </article>`).join('');
+(async () => {
+  const imgs = await Promise.all(MARCAS.map((m) => cargar(m.logo.src)));
+  document.getElementById('marcas').innerHTML = MARCAS.map((m, i) => `
+    <article class="marca">
+      <div class="marca-cab" style="background: ${m.color}">${e(m.nombre)} · local de ejemplo ${m.local}</div>
+      <div class="qrs">${CANALES.map(([canal, etiqueta]) => {
+        const url = new URL(`${m.ruta}/?l=${m.local}&c=${canal}`, location.href).href;
+        const png = qrConLogo(url, m.logo, imgs[i]);
+        return `<div class="qr"><img src="${png}" alt="QR de ${e(m.nombre)} ${m.local}, ${etiqueta}" data-url="${e(url)}"><b>${etiqueta}</b><small>${e(url)}</small><a href="${e(url)}">Abrir en este equipo</a><a href="${png}" download="QR-${m.ruta}-${m.local}-${canal}.png">Descargar PNG</a></div>`;
+      }).join('')}</div>
+    </article>`).join('');
+})();
 </script>
 </body>
 </html>
