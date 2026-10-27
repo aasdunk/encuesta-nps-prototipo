@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Correos y alertas · Vista previa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&display=swap">
+<style>
+:root { color-scheme: light; --fondo: #F4F4F2; --hoja: #FFFFFF; --texto: #1F1F1F; --suave: #5C5C5C; --borde: #E2E1DC; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--fondo); color: var(--texto); font-family: 'Archivo', system-ui, sans-serif; }
+.app { max-width: 1180px; margin: 0 auto; padding: 24px 16px 48px; }
+header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 12px; margin-bottom: 16px; }
+h1 { margin: 0; font-size: 28px; font-weight: 800; }
+.sub { margin: 6px 0 0; max-width: 760px; color: var(--suave); line-height: 1.45; }
+.btn { height: 40px; padding: 0 16px; display: inline-flex; align-items: center; border-radius: 999px; border: 1px solid var(--borde); background: var(--hoja); color: var(--texto); font: 600 14px 'Archivo', sans-serif; text-decoration: none; cursor: pointer; }
+.btn.oscuro { background: #1F1F1F; border-color: #1F1F1F; color: #FFFFFF; }
+.controles { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; padding: 12px 16px; margin-bottom: 16px; background: var(--hoja); border: 1px solid var(--borde); border-radius: 14px; }
+.controles label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; font-weight: 700; color: var(--suave); text-transform: uppercase; letter-spacing: 0.5px; }
+.controles select, .controles input { height: 38px; min-width: 170px; border-radius: 8px; border: 1px solid var(--borde); background: var(--fondo); color: var(--texto); font: 500 14px 'Archivo', sans-serif; padding: 0 8px; }
+.columnas { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 520px), 1fr)); gap: 16px; }
+.panel { background: var(--hoja); border: 1px solid var(--borde); border-radius: 14px; padding: 16px; min-width: 0; }
+.panel h2 { margin: 0; font-size: 17px; }
+.meta { margin: 6px 0 12px; font-size: 13px; color: var(--suave); line-height: 1.5; }
+.meta b { color: var(--texto); }
+.estado { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; }
+.estado::before { content: ''; width: 8px; height: 8px; border-radius: 999px; background: currentColor; }
+.estado.on { color: #0C7A0C; } .estado.off { color: #8A6100; }
+iframe { width: 100%; height: 720px; border: 1px solid var(--borde); border-radius: 10px; background: #FFFFFF; }
+.nota { margin-top: 16px; padding: 14px 16px; background: var(--hoja); border: 1px solid var(--borde); border-radius: 14px; color: var(--suave); font-size: 14px; line-height: 1.55; }
+.nota ol { margin: 6px 0 0; padding-left: 20px; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div>
+      <h1>Correo diario y alertas</h1>
+      <p class="sub">Vista previa de lo que reciben las marcas cada mañana y las tiendas cuando un cliente evalúa mal. Esta página no envía nada: solo muestra cómo se verían los correos con los datos reales de la planilla.</p>
+    </div>
+    <div style="display: flex; gap: 8px; flex-wrap: wrap">
+      <a class="btn" href="index.html">← Menú del prototipo</a>
+      <a class="btn" href="dashboard.html">Dashboard</a>
+    </div>
+  </header>
+
+  <section class="controles">
+    <label>Marca<select id="c-marca"><option>Dunkin</option><option>Jimmy John's</option><option>Savory</option></select></label>
+    <label>Día del reporte<input id="c-fecha" type="date"></label>
+    <button class="btn oscuro" id="c-ver" type="button">Ver correos</button>
+  </section>
+
+  <section class="columnas">
+    <div class="panel">
+      <h2>Correo diario de la marca</h2>
+      <p class="meta" id="m-correo">Cargando…</p>
+      <iframe id="f-correo" title="Vista previa del correo diario" sandbox=""></iframe>
+    </div>
+    <div class="panel">
+      <h2>Alerta a la tienda</h2>
+      <p class="meta" id="m-alerta">Cargando…</p>
+      <iframe id="f-alerta" title="Vista previa de la alerta a la tienda" sandbox="" style="height: 420px"></iframe>
+    </div>
+  </section>
+
+  <div class="nota">
+    <b>Cómo se encienden los envíos</b> (en la planilla, sin tocar código):
+    <ol>
+      <li>Hoja <b>Destinatarios</b>: los correos que reciben el reporte diario de cada marca, separados por coma.</li>
+      <li>Hoja <b>Locales</b>: <code>email_tienda</code> y <code>email_supervisor</code> de cada tienda, para las alertas. Estos correos no se publican en el dashboard.</li>
+      <li>Hoja <b>Config</b>: cambiar <code>correo_diario_activo</code> y <code>alertas_activas</code> a <b>Sí</b>, y elegir la <code>hora_correo</code>.</li>
+    </ol>
+    El reporte cubre el día anterior completo. "No promotor" = cualquier respuesta distinta de "Muy satisfecho". Ningún correo incluye nombres ni correos de clientes.
+  </div>
+</div>
+<script src="js/config.js?v=12"></script>
+<script>
+const url = window.CONFIG.APPS_SCRIPT_URL;
+const ayer = new Date(Date.now() - 864e5);
+document.getElementById('c-fecha').value = ayer.getFullYear() + '-' + String(ayer.getMonth() + 1).padStart(2, '0') + '-' + String(ayer.getDate()).padStart(2, '0');
+
+const estadoTxt = (activo, n, quien) => `${activo ? '<span class="estado on">Envío encendido</span>' : '<span class="estado off">Envío apagado</span>'} · ${n ? `${n} ${quien}` : `sin ${quien} configurados`}`;
+const e = (t) => String(t).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+async function ver() {
+  const marca = document.getElementById('c-marca').value;
+  const fecha = document.getElementById('c-fecha').value;
+  const mC = document.getElementById('m-correo'), mA = document.getElementById('m-alerta');
+  mC.textContent = mA.textContent = 'Cargando…';
+  try {
+    const [c, a] = await Promise.all([
+      fetch(`${url}?accion=correo&marca=${encodeURIComponent(marca)}&fecha=${fecha}&t=${Date.now()}`).then((r) => r.json()),
+      fetch(`${url}?accion=alerta_prueba&marca=${encodeURIComponent(marca)}&t=${Date.now()}`).then((r) => r.json())
+    ]);
+    if (!c.ok || !a.ok) throw new Error(c.error || a.error || 'respuesta inválida');
+    mC.innerHTML = `<b>Asunto:</b> ${e(c.asunto)}<br>${estadoTxt(c.activo, c.destinatarios, 'destinatarios')}`;
+    mA.innerHTML = `<b>Asunto:</b> ${e(a.asunto)}<br>${estadoTxt(a.activo, a.destinatarios, 'destinatarios para esa tienda')} · se envía cuando un cliente marca Insatisfecho o Muy insatisfecho`;
+    document.getElementById('f-correo').srcdoc = c.html;
+    document.getElementById('f-alerta').srcdoc = a.html;
+  } catch (err) {
+    mC.textContent = mA.textContent = 'No se pudo cargar la vista previa: ' + err.message;
+  }
+}
+document.getElementById('c-ver').addEventListener('click', ver);
+document.getElementById('c-marca').addEventListener('change', ver);
+ver();
+</script>
+</body>
+</html>
