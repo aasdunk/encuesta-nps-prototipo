@@ -49,12 +49,13 @@ h1 { margin: 0; font-size: 28px; font-weight: 800; }
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
 <script>
-// Logo de cada marca al centro del QR. "recorte" toma solo la parte del archivo que es el logo;
-// "ancho" es la fracción del QR que ocupa (el nivel H de corrección tolera hasta ~30% tapado).
+// Ícono de cada marca al centro del QR: el vaso de Dunkin (del QR de Inspire), las letras JJ (del sello)
+// y la paleta de la iconografía de Savory. "ancho" es la fracción del QR que ocupa; el nivel H de
+// corrección tolera hasta ~30% tapado y estos íconos tapan menos del 4%.
 const MARCAS = [
-  { ruta: 'dunkin', nombre: "Dunkin'", local: 'DK101', color: '#F26B0F', logo: { src: 'img/marcas/dunkin-logo-productos.png', recorte: [26, 38, 630, 145], ancho: 0.44 } },
-  { ruta: 'jj', nombre: "Jimmy John's", local: 'JJ101', color: '#E4002B', logo: { src: 'img/marcas/jj-sello.png', ancho: 0.24, redondo: true } },
-  { ruta: 'savory', nombre: 'Savory', local: 'SV101', color: '#303AB2', logo: { src: 'img/marcas/savory-logo.webp', ancho: 0.27 } }
+  { ruta: 'dunkin', nombre: "Dunkin'", local: 'DK101', color: '#F26B0F', logo: { src: 'img/marcas/qr-dunkin.png', ancho: 0.12 } },
+  { ruta: 'jj', nombre: "Jimmy John's", local: 'JJ101', color: '#E4002B', logo: { src: 'img/marcas/qr-jj.png', ancho: 0.15 } },
+  { ruta: 'savory', nombre: 'Savory', local: 'SV101', color: '#303AB2', logo: { src: 'img/marcas/qr-savory.png', ancho: 0.085 } }
 ];
 const CANALES = [['tienda', 'Afiche de la tienda'], ['boleta', 'Pie de la boleta']];
 const e = (t) => String(t).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -81,6 +82,7 @@ function qrConLogo(texto, logo, img) {
   if (logo.redondo) g.arc(lado / 2, lado / 2, w / 2 + pad, 0, Math.PI * 2);
   else g.roundRect(x - pad, y - pad, w + 2 * pad, h + 2 * pad, celda * 1.5);
   g.fill();
+  g.imageSmoothingQuality = 'high';
   g.drawImage(img, sx, sy, sw, sh, x, y, w, h);
   return c.toDataURL('image/png');
 }
