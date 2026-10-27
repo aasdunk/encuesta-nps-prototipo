@@ -293,7 +293,7 @@ const ATRIBUTOS = ['calidad', 'exactitud', 'velocidad', 'amabilidad', 'limpieza'
 const FLUJOS = ['Dunkin', "Jimmy John's", 'Savory'];
 
 const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
-const colorFlujo = (f) => ({ 'Dunkin': '#F26B0F', "Jimmy John's": '#E4002B', 'Savory': '#3FA8F4' })[f] || css('--texto-3');
+const colorFlujo = (f) => ({ 'Dunkin': '#EF6A00', "Jimmy John's": '#E4002B', 'Savory': '#3FA8F4' })[f] || css('--texto-3');
 const pct = (x) => (x === null || isNaN(x) ? '—' : Math.round(x * 100) + '%');
 const num = (x) => (x === null || isNaN(x) ? '—' : (x > 0 ? '+' : '') + Math.round(x * 100));
 const escapar = (t) => String(t === undefined || t === null ? '' : t).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -404,7 +404,7 @@ function filtradas(incluirIncompletas) {
 }
 
 // Colores de cada marca, usados de forma sutil para saber qué se está revisando
-const MARCAS_COLOR = { 'Dunkin': '#F26B0F', "Jimmy John's": '#E4002B', 'Savory': '#3FA8F4' };
+const MARCAS_COLOR = { 'Dunkin': '#EF6A00', "Jimmy John's": '#E4002B', 'Savory': '#3FA8F4' };
 function aplicarMarca() {
   const marca = document.getElementById('f-marca').value;
   const color = MARCAS_COLOR[marca];

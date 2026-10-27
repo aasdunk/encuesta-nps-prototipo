@@ -4,22 +4,39 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
-<meta name="theme-color" content="#F26B0F">
+<meta name="theme-color" content="#EF6A00">
 <title>Dunkin' · ¿Qué tal tu experiencia?</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Fraunces:opsz,wght@9..144,700&display=swap">
 <link rel="stylesheet" href="../css/movil.css?v=11">
 <style>
+/* Según el Dunkin' International Brand Playbook (2023): naranjo #EF6A00 como color dominante, rosado #C63663
+   de acento, café espresso #3E342F para el texto, crema #F8F4F1 y latte #DCC7B7 para fondos y bordes.
+   Títulos en mayúsculas con letra redondeada y gruesa (Dunkin' Sans Extra Bold; aquí Fredoka como equivalente
+   libre) y un toque de serif (Dunkin' Serif Bold; aquí Fraunces). */
 :root {
-  --fondo: #FCEFE6; --hoja: #FFFFFF; --tarjeta: #FFFFFF; --texto: #4A2C22; --texto-suave: #7A5A4E; --titulo: #F26B0F;
-  --primario: #E8178A; --sobre-primario: #FFFFFF; --borde: #EADDD6; --sel-fondo: #FDE7F2; --ofertas-fondo: #FFF4EC;
-  --cab-fondo: #FFFFFF; --cab-texto: #4A2C22; --progreso-vacio: #EADDD6;
+  --naranjo: #EF6A00; --rosado: #C63663; --espresso: #3E342F; --crema: #F8F4F1; --latte: #DCC7B7;
+  --fondo: var(--crema); --hoja: #FFFFFF; --tarjeta: #FFFFFF; --texto: var(--espresso); --texto-suave: #6B5D55; --titulo: var(--naranjo);
+  --primario: var(--naranjo); --sobre-primario: #FFFFFF; --borde: var(--latte); --sel-fondo: #FDEBDD; --ofertas-fondo: var(--crema);
+  --cab-fondo: #FFFFFF; --cab-texto: var(--espresso); --progreso-vacio: var(--latte);
   --fuente: 'Fredoka', system-ui, sans-serif; --fuente-titulo: 'Fredoka', system-ui, sans-serif; --fuente-boton: 'Fredoka', system-ui, sans-serif;
-  --peso-titulo: 700; --mayus: none; --espaciado-titulo: 0; --mayus-boton: none; --espaciado-boton: 0;
+  --peso-titulo: 700; --mayus: uppercase; --espaciado-titulo: 0.3px; --mayus-boton: uppercase; --espaciado-boton: 0.5px;
   --radio: 18px; --radio-chip: 999px; --radio-boton: 999px; --radio-campo: 12px;
 }
+/* Franja de los cinco colores de marca, como en las piezas del playbook */
+.cab { position: relative; padding-bottom: 20px; }
+.cab::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 6px; background: linear-gradient(90deg, var(--naranjo) 0 20%, var(--rosado) 20% 40%, var(--espresso) 40% 60%, var(--latte) 60% 80%, var(--crema) 80% 100%); }
 .logo-dk { position: relative; width: 150px; height: 32px; overflow: hidden; }
 .logo-dk img { position: absolute; left: 0; top: -10px; width: 230px; height: 50px; }
+.progreso span.lleno { background: var(--naranjo); }
+h1 { font-size: 27px; line-height: 1.1; }
+h1 .serif, h2 .serif { display: block; margin-top: 6px; font-family: 'Fraunces', Georgia, serif; font-weight: 700; text-transform: none; letter-spacing: 0; font-size: 0.68em; color: var(--rosado); }
+.cara-fila { border-color: transparent; box-shadow: 0 0 0 1px var(--latte); }
+.cara-fila:active, .cara-fila.tocado { box-shadow: 0 0 0 2px var(--naranjo); }
+.chip.sel { background: var(--naranjo); border-color: var(--naranjo); }
+.ofertas { border: 1px solid var(--latte); }
+.enlace { color: var(--rosado); }
+.gracias h1 { font-size: 38px; }
 </style>
 </head>
 <body>
@@ -30,9 +47,10 @@ window.MARCA = {
   logo: '<div class="logo-dk"><img src="../img/marcas/dunkin-logo-productos.png" alt="Dunkin"></div>',
   imagen: '<img class="imagen" src="../img/productos/04-cafe-con-dona.png" alt="">',
   textos: {
-    pregunta: '¿Qué tal fue tu experiencia hoy?', positiva: '¡Qué bueno! ¿Qué fue lo mejor?',
+    pregunta: '¿Qué tal fue tu experiencia hoy?<span class="serif">Tu opinión nos llena de energía.</span>',
+    positiva: '¡Qué bueno! ¿Qué fue lo mejor?',
     neutra: '¿Qué podríamos hacer mejor?', negativa: 'Lo sentimos. ¿Qué falló?',
-    ofertas: '¿Quieres recibir ofertas y descuentos?', gracias: '¡Gracias!'
+    ofertas: '¿Quieres recibir ofertas y descuentos?', gracias: '¡Gracias!<span class="serif">Que tengas un día con energía positiva.</span>'
   },
   gusto: ['Calidad del producto', 'Rapidez de atención', 'Amabilidad del personal', 'Pedido correcto', 'Limpieza del local', 'Variedad de productos'],
   mejorar: ['Calidad del producto', 'Demora en la atención', 'Atención del personal', 'Pedido incorrecto', 'Limpieza del local', 'Faltaban productos']

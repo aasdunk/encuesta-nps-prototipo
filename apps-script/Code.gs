@@ -20,7 +20,7 @@ const COLUMNAS_INICIALES = [
 // Columnas que nunca salen hacia el dashboard ni hacia los correos
 const PRIVADAS = ['nombres', 'apellidos', 'email', 'dispositivo'];
 const MARCAS = ['Dunkin', "Jimmy John's", 'Savory'];
-const COLOR_MARCA = { 'Dunkin': '#F26B0F', "Jimmy John's": '#EA0029', 'Savory': '#303AB2' };
+const COLOR_MARCA = { 'Dunkin': '#EF6A00', "Jimmy John's": '#EA0029', 'Savory': '#303AB2' };
 const SATISFECHOS = ['Muy satisfecho', 'Satisfecho'];
 const INSATISFECHOS = ['Insatisfecho', 'Muy insatisfecho'];
 // No promotor = cualquier experiencia distinta de "Muy satisfecho"
