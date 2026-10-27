@@ -104,17 +104,41 @@ td.num, th.num { text-align: right; }
 .aviso { display: none; background: var(--superficie); border: 1px dashed var(--borde); border-radius: 12px; padding: 12px 16px; margin-bottom: 12px; font-size: 14px; color: var(--texto-2); }
 .demo { background: #fff4d6; color: #6b4e00; border-radius: 12px; padding: 10px 16px; margin-bottom: 16px; font-size: 14px; font-weight: 600; }
 .error { background: #fde8e8; color: #8a1c1c; border-radius: 12px; padding: 12px 16px; margin-bottom: 16px; display: none; }
+
+/* Color de la marca que se está revisando (gris neutro en multimarca), aplicado de forma sutil */
+:root { --marca: #5c5b57; --marca-suave: rgba(92, 91, 87, 0.08); }
+body { border-top: 5px solid var(--marca); transition: border-color 0.3s; }
+.viendo { display: inline-flex; align-items: center; gap: 8px; margin-bottom: 6px; padding: 4px 12px 4px 8px; border-radius: 999px; background: var(--marca-suave); font-size: 13px; font-weight: 700; color: var(--texto); }
+.viendo .puntos { display: inline-flex; gap: 3px; }
+.viendo .puntos i { width: 10px; height: 10px; border-radius: 999px; display: inline-block; }
+.kpi { border-top: 3px solid var(--marca); }
+.bloque { border-top: 2px solid var(--marca); }
+.card h3 { margin: 0 0 10px; font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+.card h3 + .nota { margin-top: -6px; }
+.titulo-seccion { margin: 4px 0 10px; font-size: 20px; font-weight: 800; display: flex; align-items: center; gap: 6px; }
+.bloque-cab h2 { display: flex; align-items: center; gap: 6px; }
+.kpi .t { display: flex; align-items: center; gap: 6px; }
+
+/* Ayudas: un "?" que muestra una explicación corta al pasar el cursor o tocar */
+.ayuda { position: relative; display: inline-flex; align-items: center; justify-content: center; flex: none; width: 18px; height: 18px; border-radius: 999px; border: 1px solid var(--texto-3); color: var(--texto-2); font-size: 11px; font-weight: 800; cursor: help; text-transform: none; letter-spacing: 0; }
+.ayuda:hover::after, .ayuda:focus::after { content: attr(data-ayuda); position: absolute; z-index: 30; left: 50%; top: 24px; transform: translateX(-50%); width: max-content; max-width: 280px; padding: 10px 12px; border-radius: 10px; background: var(--texto); color: var(--superficie); font-size: 13px; font-weight: 500; line-height: 1.4; white-space: normal; text-align: left; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2); }
+.ayuda:focus { outline: 2px solid var(--marca); outline-offset: 2px; }
+.guia { margin-bottom: 16px; padding: 12px 16px; background: var(--superficie); border: 1px solid var(--borde); border-radius: 14px; font-size: 14px; color: var(--texto-2); }
+.guia summary { cursor: pointer; font-weight: 700; color: var(--texto); }
+.guia ul { margin: 10px 0 0; padding-left: 20px; line-height: 1.6; }
 </style>
 </head>
 <body>
 <div class="app">
   <header>
     <div>
-      <h1>Encuesta de satisfacción en tienda · Dashboard</h1>
+      <div class="viendo" id="viendo"></div>
+      <h1>Satisfacción de clientes · Dashboard</h1>
       <p class="sub" id="estado-datos">Cargando respuestas…</p>
     </div>
     <div class="acciones">
       <a class="btn" href="index.html">← Menú del prototipo</a>
+      <a class="btn" href="correo.html">Correo diario</a>
       <button class="btn" id="btn-csv" type="button">Exportar CSV</button>
       <button class="btn principal" id="btn-actualizar" type="button">Actualizar</button>
     </div>
@@ -122,29 +146,55 @@ td.num, th.num { text-align: right; }
 
   <div class="error" id="error"></div>
 
+  <details class="guia">
+    <summary>¿Cómo leer este dashboard?</summary>
+    <ul>
+      <li><b>Elige una marca</b> en los filtros para ver solo esa marca; el color de la página cambia al de la marca. Sin marca elegida ves el consolidado multimarca.</li>
+      <li><b>ISN</b> (índice de satisfacción neta) es el indicador principal: % de clientes satisfechos menos % de insatisfechos. Va de −100 a +100; sobre +80 es muy bueno.</li>
+      <li><b>Tasa de insatisfacción</b> es la métrica del reporte de Global Metrics: clientes insatisfechos por cada 100 transacciones. Mientras más baja, mejor; el límite es 0,60%.</li>
+      <li>Pasa el cursor (o toca) los signos <span class="ayuda" tabindex="0" data-ayuda="Así se ven las ayudas: explican cada número en una frase.">?</span> para ver qué significa cada número.</li>
+    </ul>
+  </details>
+
   <section class="filtros" aria-label="Filtros">
     <label>Marca<select id="f-marca"></select></label>
-    <label>Flujo<select id="f-flujo"></select></label>
-    <label>Canal<select id="f-canal"></select></label>
     <label>Gerente de operaciones<select id="f-gop"></select></label>
     <label>Supervisor<select id="f-supervisor"></select></label>
     <label>Local<select id="f-local"></select></label>
     <label>Período<select id="f-periodo">
       <option value="hoy">Hoy</option>
+      <option value="ayer">Ayer</option>
       <option value="7">Últimos 7 días</option>
       <option value="30">Últimos 30 días</option>
+      <option value="mes">Este mes</option>
+      <option value="mesant">Mes anterior</option>
       <option value="todo" selected>Todo</option>
     </select></label>
+    <label>Tipo de cliente<select id="f-tipo"></select></label>
+    <label>Canal<select id="f-canal"></select></label>
+    <label>Encuesta<select id="f-flujo"></select></label>
     <label class="check"><input type="checkbox" id="f-completas"> Solo encuestas completas</label>
   </section>
 
+  <h2 class="titulo-seccion">Resumen del período <span class="ayuda" tabindex="0" data-ayuda="Estos números responden a todos los filtros de arriba, incluido el período.">?</span></h2>
   <section class="kpis" id="kpis" aria-label="Indicadores principales"></section>
+
+  <section class="bloque" aria-label="Evolución mensual">
+    <div class="bloque-cab"><div>
+      <h2>Evolución de los últimos 13 meses <span class="ayuda" tabindex="0" data-ayuda="Muestra la tendencia de largo plazo, igual que el gráfico de 13 meses de Global Metrics. No depende del filtro de período.">?</span></h2>
+      <p class="nota">¿Estamos mejorando o empeorando mes a mes?</p>
+    </div></div>
+    <div class="grid">
+      <div class="card"><h3>Respuestas por mes</h3><div class="lienzo"><canvas id="g-mes-resp"></canvas></div></div>
+      <div class="card"><h3>ISN por mes <span class="ayuda" tabindex="0" data-ayuda="Satisfechos menos insatisfechos, en puntos. Más alto es mejor.">?</span></h3><div class="lienzo"><canvas id="g-mes-isn"></canvas></div></div>
+    </div>
+  </section>
 
   <section class="bloque" aria-label="Tasa de insatisfacción">
     <div class="bloque-cab">
       <div>
-        <h2>Tasa de insatisfacción</h2>
-        <p class="nota">Insatisfechos ÷ transacciones del local, igual que el reporte diario de Global Metrics. Solo cuentan los días en que el local tiene transacciones cargadas en la hoja <b>Transacciones</b>. Esta sección usa su propio día de referencia; el filtro de período no la afecta.</p>
+        <h2>Tasa de insatisfacción y ranking de tiendas <span class="ayuda" tabindex="0" data-ayuda="Insatisfechos dividido por las transacciones del local, como en el reporte diario de Global Metrics. Solo cuentan los días con transacciones cargadas en la hoja Transacciones.">?</span></h2>
+        <p class="nota">¿Qué tiendas tienen más clientes insatisfechos por cada venta? Esta sección usa su propio día de referencia.</p>
       </div>
       <div class="filtros-bloque">
         <label>Día de referencia<select id="t-dia"></select></label>
@@ -154,65 +204,88 @@ td.num, th.num { text-align: right; }
     <div class="aviso" id="t-aviso"></div>
     <div class="kpis" id="t-kpis"></div>
     <div class="grid">
-      <div class="card" style="grid-column: 1 / -1"><h2>Evolución de la tasa de insatisfacción</h2><p class="nota">Últimas 8 semanas (lunes a domingo). La línea punteada es el límite.</p><div class="lienzo"><canvas id="g-tasa-semanas"></canvas></div></div>
+      <div class="card" style="grid-column: 1 / -1"><h3>Evolución de la tasa de insatisfacción <span class="ayuda" tabindex="0" data-ayuda="Últimas 8 semanas, de lunes a domingo. Si la línea azul queda bajo la punteada, la marca está dentro del límite.">?</span></h3><p class="nota">Últimas 8 semanas. La línea punteada es el límite.</p><div class="lienzo"><canvas id="g-tasa-semanas"></canvas></div></div>
     </div>
     <div class="grid">
-      <div class="card"><h2>Bottom 20 · día de referencia</h2><p class="nota">Locales con mayor tasa de insatisfacción. Tendencia ISN = ISN del día − ISN de los 7 días anteriores.</p><div class="tabla" id="t-bottom-dia"></div></div>
-      <div class="card"><h2>Top 20 · día de referencia</h2><p class="nota">Locales con menor tasa de insatisfacción.</p><div class="tabla" id="t-top-dia"></div></div>
+      <div class="card"><h3>Bottom 20 · día de referencia <span class="ayuda" tabindex="0" data-ayuda="Las 20 tiendas con más insatisfechos por transacción ese día. En rojo, las que superan el límite. Tendencia = ISN del día menos ISN de los 7 días anteriores.">?</span></h3><p class="nota">Tiendas que más necesitan atención.</p><div class="tabla" id="t-bottom-dia"></div></div>
+      <div class="card"><h3>Top 20 · día de referencia <span class="ayuda" tabindex="0" data-ayuda="Las 20 tiendas con menos insatisfechos por transacción ese día.">?</span></h3><p class="nota">Tiendas con mejor resultado.</p><div class="tabla" id="t-top-dia"></div></div>
     </div>
     <div class="grid">
-      <div class="card" style="grid-column: 1 / -1"><h2>Bottom 20 · acumulado del mes</h2><p class="nota">Del día 1 del mes hasta el día de referencia. Tendencia ISN = ISN del mes − ISN del mismo período del mes anterior.</p><div class="tabla" id="t-bottom-mes"></div></div>
+      <div class="card" style="grid-column: 1 / -1"><h3>Bottom 20 · acumulado del mes <span class="ayuda" tabindex="0" data-ayuda="Del día 1 del mes hasta el día de referencia. Tendencia = ISN del mes menos ISN del mismo período del mes anterior.">?</span></h3><div class="tabla" id="t-bottom-mes"></div></div>
     </div>
     <div class="grid">
-      <div class="card" style="grid-column: 1 / -1"><h2>Desempeño por gerente de operaciones (GO)</h2><p class="nota">Acumulado del mes. ISN de la experiencia y de cada atributo.</p><div class="tabla" id="t-go"></div></div>
+      <div class="card" style="grid-column: 1 / -1"><h3>Desempeño por gerente de operaciones (GO) <span class="ayuda" tabindex="0" data-ayuda="Acumulado del mes de todas las tiendas de cada gerente. Las tiendas se asignan en la hoja Locales.">?</span></h3><div class="tabla" id="t-go"></div></div>
     </div>
     <div class="grid">
-      <div class="card" style="grid-column: 1 / -1"><h2>Desempeño por supervisor (SGO)</h2><p class="nota">Acumulado del mes, ordenado de mayor a menor tasa de insatisfacción.</p><div class="tabla" id="t-sgo"></div></div>
+      <div class="card" style="grid-column: 1 / -1"><h3>Desempeño por supervisor (SGO) <span class="ayuda" tabindex="0" data-ayuda="Acumulado del mes, ordenado de mayor a menor tasa de insatisfacción.">?</span></h3><div class="tabla" id="t-sgo"></div></div>
     </div>
   </section>
 
-  <section class="grid">
-    <div class="card"><h2>Experiencia general por flujo</h2><p class="nota">Porcentaje de respuestas en cada carita. ISN = satisfechos − insatisfechos.</p><div class="lienzo"><canvas id="g-experiencia"></canvas></div></div>
-    <div class="card"><h2>NPS por flujo</h2><p class="nota">Promotores (9-10), pasivos (7-8) y detractores (0-6). NPS = % promotores − % detractores.</p><div class="lienzo"><canvas id="g-nps"></canvas></div></div>
+  <section class="bloque" aria-label="Qué dicen los clientes">
+    <div class="bloque-cab"><div>
+      <h2>Qué dicen los clientes</h2>
+      <p class="nota">Lo que más gusta, lo que más falla y cómo se reparten las respuestas.</p>
+    </div></div>
+    <div class="grid">
+      <div class="card"><h3>Lo que más falló <span class="ayuda" tabindex="0" data-ayuda="Opciones elegidas por clientes indiferentes o insatisfechos. Un cliente puede elegir varias.">?</span></h3><div class="lienzo"><canvas id="g-mejorar"></canvas></div></div>
+      <div class="card"><h3>Lo que más gustó <span class="ayuda" tabindex="0" data-ayuda="Opciones elegidas por clientes satisfechos o muy satisfechos. Un cliente puede elegir varias.">?</span></h3><div class="lienzo"><canvas id="g-gusto"></canvas></div></div>
+    </div>
+    <div class="grid">
+      <div class="card"><h3>Cómo se reparten las respuestas <span class="ayuda" tabindex="0" data-ayuda="Porcentaje de clientes en cada carita, por marca y tipo de encuesta. Entre paréntesis, el ISN.">?</span></h3><div class="lienzo"><canvas id="g-experiencia"></canvas></div></div>
+      <div class="card" data-ocultable><h3>NPS por encuesta <span class="ayuda" tabindex="0" data-ayuda="Solo para las encuestas que preguntan la nota de 0 a 10. NPS = % de notas 9-10 menos % de notas 0-6.">?</span></h3><div class="lienzo"><canvas id="g-nps"></canvas></div></div>
+    </div>
+    <div class="grid">
+      <div class="card" data-ocultable><h3>ISN por atributo <span class="ayuda" tabindex="0" data-ayuda="Solo para encuestas que evalúan calidad, exactitud, velocidad, amabilidad y limpieza por separado. Entre paréntesis, cuántas respuestas.">?</span></h3><div class="lienzo"><canvas id="g-atributos"></canvas></div></div>
+      <div class="card" data-ocultable><h3>ISN por producto <span class="ayuda" tabindex="0" data-ayuda="Satisfacción de quienes compraron cada producto (solo encuestas que preguntan el producto).">?</span></h3><div class="lienzo"><canvas id="g-productos"></canvas></div></div>
+    </div>
   </section>
 
-  <section class="grid">
-    <div class="card"><h2>Respuestas por día</h2><p class="nota">Encuestas recibidas, completas e incompletas.</p><div class="lienzo"><canvas id="g-dias"></canvas></div></div>
-    <div class="card"><h2>ISN por día</h2><p class="nota">Satisfacción neta de la experiencia general, día a día.</p><div class="lienzo"><canvas id="g-isn-dia"></canvas></div></div>
+  <section class="bloque" aria-label="Día a día">
+    <div class="bloque-cab"><div>
+      <h2>Día a día</h2>
+      <p class="nota">Cuántas encuestas llegan y cómo cambia la satisfacción cada día del período elegido.</p>
+    </div></div>
+    <div class="grid">
+      <div class="card"><h3>Respuestas por día <span class="ayuda" tabindex="0" data-ayuda="Incompletas = el cliente empezó la encuesta pero no llegó al final.">?</span></h3><div class="lienzo"><canvas id="g-dias"></canvas></div></div>
+      <div class="card"><h3>ISN por día</h3><div class="lienzo"><canvas id="g-isn-dia"></canvas></div></div>
+    </div>
   </section>
 
-  <section class="grid">
-    <div class="card"><h2>ISN por atributo</h2><p class="nota">Calidad, exactitud, velocidad, amabilidad y limpieza. Entre paréntesis, cuántas respuestas tiene cada uno.</p><div class="lienzo"><canvas id="g-atributos"></canvas></div></div>
-    <div class="card"><h2>ISN por producto</h2><p class="nota">Satisfacción general de quienes compraron cada producto. Una respuesta puede tener varios productos.</p><div class="lienzo"><canvas id="g-productos"></canvas></div></div>
+  <section class="bloque" aria-label="Tiendas y comentarios">
+    <div class="bloque-cab"><div>
+      <h2>Tiendas, comentarios y respuestas</h2>
+    </div></div>
+    <div class="grid">
+      <div class="card" style="grid-column: 1 / -1"><h3>Tiendas <span class="ayuda" tabindex="0" data-ayuda="Todas las tiendas con respuestas en el período, ordenadas por ISN. Actividad avisa si una tienda lleva días sin respuestas: puede que el QR no esté visible.">?</span></h3><div class="tabla" id="t-locales"></div></div>
+    </div>
+    <div class="grid">
+      <div class="card" style="grid-column: 1 / -1"><h3>Comentarios recientes <span class="ayuda" tabindex="0" data-ayuda="Los 30 comentarios más nuevos del filtro actual. El borde rojo marca clientes insatisfechos.">?</span></h3><div class="tabla" id="t-comentarios"></div></div>
+    </div>
+    <div class="grid">
+      <div class="card" style="grid-column: 1 / -1"><h3>Detalle de respuestas <span class="ayuda" tabindex="0" data-ayuda="Las 100 respuestas más recientes del filtro actual, una por fila. Para verlas todas, usa Exportar CSV. No se muestran nombres ni correos.">?</span></h3><div class="tabla" id="t-detalle"></div></div>
+    </div>
   </section>
 
-  <section class="grid">
-    <div class="card"><h2>¿Qué podemos mejorar?</h2><p class="nota">Motivos elegidos por clientes indiferentes o insatisfechos.</p><div class="lienzo"><canvas id="g-mejorar"></canvas></div></div>
-    <div class="card"><h2>¿Qué fue lo que más gustó?</h2><p class="nota">Motivos elegidos por clientes satisfechos (flujo propuesto de Dunkin).</p><div class="lienzo"><canvas id="g-gusto"></canvas></div></div>
-  </section>
-
-  <section class="grid">
-    <div class="card"><h2>¿Dónde se abandona la encuesta?</h2><p class="nota">Último paso alcanzado por las encuestas incompletas.</p><div class="lienzo"><canvas id="g-abandono"></canvas></div></div>
-    <div class="card"><h2>Comparación de flujos</h2><p class="nota">Cómo rinde cada versión de la encuesta.</p><div class="tabla" id="t-flujos"></div></div>
-  </section>
-
-  <section class="grid">
-    <div class="card" style="grid-column: 1 / -1"><h2>Locales</h2><p class="nota">Ranking por ISN. El estado avisa cuando un local lleva más de 2 horas sin enviar respuestas (posible tablet apagada o sin internet).</p><div class="tabla" id="t-locales"></div></div>
-  </section>
-
-  <section class="grid">
-    <div class="card" style="grid-column: 1 / -1"><h2>Comentarios recientes</h2><p class="nota">Los 30 comentarios más nuevos del filtro actual.</p><div class="tabla" id="t-comentarios"></div></div>
+  <section class="bloque" aria-label="Calidad de la encuesta">
+    <div class="bloque-cab"><div>
+      <h2>Calidad de la encuesta</h2>
+      <p class="nota">Para el equipo que administra la encuesta: dónde se abandona y cómo rinde cada versión.</p>
+    </div></div>
+    <div class="grid">
+      <div class="card"><h3>¿Dónde se abandona la encuesta?</h3><div class="lienzo"><canvas id="g-abandono"></canvas></div></div>
+      <div class="card"><h3>Comparación de encuestas <span class="ayuda" tabindex="0" data-ayuda="Cada fila es una marca y versión de la encuesta (QR por celular o la tablet anterior).">?</span></h3><div class="tabla" id="t-flujos"></div></div>
+    </div>
   </section>
 
   <p class="pie">
-    <b>ISN</b> (índice de satisfacción neta) = % de muy satisfechos y satisfechos − % de insatisfechos y muy insatisfechos; "indiferente" cuenta como neutro, igual que en el reporte de Global Metrics.
-    <b>NPS</b> = % de notas 9-10 − % de notas 0-6. Los datos personales (nombre, apellidos y correo) no se muestran aquí: solo se indica si la persona dejó sus datos para recibir ofertas.
-    Los locales, supervisores y gerentes de operaciones se configuran en la hoja <b>Locales</b> de la planilla.
+    <b>ISN</b> = % de muy satisfechos y satisfechos − % de insatisfechos y muy insatisfechos; "indiferente" cuenta como neutro, igual que en Global Metrics.
+    <b>Tasa de insatisfacción</b> = insatisfechos ÷ transacciones. Los datos personales (nombre y correo) no se muestran: solo se indica si la persona dejó sus datos para ofertas.
+    Tiendas, supervisores y gerentes se configuran en la hoja <b>Locales</b>; las transacciones, en la hoja <b>Transacciones</b>.
   </p>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<script src="js/config.js?v=11"></script>
+<script src="js/config.js?v=13"></script>
 <script>
 const SATISFECHOS = ['Muy satisfecho', 'Satisfecho'];
 const INSATISFECHOS = ['Insatisfecho', 'Muy insatisfecho'];
@@ -293,31 +366,58 @@ async function cargar() {
 }
 
 const FILTROS = [
-  ['f-marca', 'Todas las marcas', (r) => r.marca],
-  ['f-flujo', 'Todos los flujos', (r) => r.flujo],
+  ['f-marca', 'Todas las marcas (multimarca)', (r) => r.marca],
+  ['f-flujo', 'Todas', (r) => r.flujo],
   ['f-canal', 'Todos los canales', (r) => r.canal || 'tablet'],
+  ['f-tipo', 'Todos', (r) => r.tipo_cliente || 'Sin dato'],
   ['f-gop', 'Todos', (r) => r.gop],
   ['f-supervisor', 'Todos', (r) => r.supervisor],
   ['f-local', 'Todos los locales', (r) => r.local]
 ];
+// Nombres más claros para las versiones de la encuesta
+const NOMBRE_FLUJO = { QR: 'Celular (QR)', Actual: 'Tablet actual (GM)', Propuesto: 'Tablet propuesta' };
+const nombreFlujo = (f) => String(f).replace(/ · (QR|Actual|Propuesto)$/, (m, k) => ' · ' + NOMBRE_FLUJO[k]);
 function llenarFiltros() {
   FILTROS.forEach(([id, todos, campo]) => {
     const sel = document.getElementById(id);
     const actual = sel.value;
     const valores = [...new Set(todas.map(campo).filter(Boolean))].sort();
-    sel.innerHTML = `<option value="">${todos}</option>` + valores.map((v) => `<option value="${escapar(v)}">${escapar(v)}${id === 'f-local' && locales[v] ? ' · ' + escapar(locales[v].nombre) : ''}</option>`).join('');
+    const etiqueta = (v) => (id === 'f-flujo' ? NOMBRE_FLUJO[v] || v : v) + (id === 'f-local' && locales[v] ? ' · ' + locales[v].nombre : '');
+    sel.innerHTML = `<option value="">${todos}</option>` + valores.map((v) => `<option value="${escapar(v)}">${escapar(etiqueta(v))}</option>`).join('');
     if (valores.includes(actual)) sel.value = actual;
   });
 }
+// Rango [desde, hasta) del filtro de período
+function rangoPeriodo() {
+  const p = document.getElementById('f-periodo').value;
+  const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
+  const dias = (n) => { const d = new Date(hoy); d.setDate(d.getDate() + n); return d; };
+  if (p === 'hoy') return [hoy, dias(1)];
+  if (p === 'ayer') return [dias(-1), hoy];
+  if (p === '7' || p === '30') return [dias(-Number(p) + 1), dias(1)];
+  if (p === 'mes') return [new Date(hoy.getFullYear(), hoy.getMonth(), 1), dias(1)];
+  if (p === 'mesant') return [new Date(hoy.getFullYear(), hoy.getMonth() - 1, 1), new Date(hoy.getFullYear(), hoy.getMonth(), 1)];
+  return [null, null];
+}
 function filtradas(incluirIncompletas) {
-  const periodo = document.getElementById('f-periodo').value;
-  const desde = new Date();
-  if (periodo === 'hoy') desde.setHours(0, 0, 0, 0);
-  else if (periodo !== 'todo') desde.setDate(desde.getDate() - Number(periodo));
+  const [desde, hasta] = rangoPeriodo();
   const solo = document.getElementById('f-completas').checked && !incluirIncompletas;
   return todas.filter((r) => FILTROS.every(([id, , campo]) => { const v = document.getElementById(id).value; return !v || campo(r) === v; })
-    && (periodo === 'todo' || r.fecha >= desde)
+    && (!desde || (r.fecha >= desde && r.fecha < hasta))
     && (!solo || r.completada));
+}
+
+// Colores de cada marca, usados de forma sutil para saber qué se está revisando
+const MARCAS_COLOR = { 'Dunkin': '#F26B0F', "Jimmy John's": '#E4002B', 'Savory': '#3FA8F4' };
+function aplicarMarca() {
+  const marca = document.getElementById('f-marca').value;
+  const color = MARCAS_COLOR[marca];
+  const raiz = document.documentElement.style;
+  raiz.setProperty('--marca', color || '#5c5b57');
+  raiz.setProperty('--marca-suave', color ? color + '1F' : 'rgba(92, 91, 87, 0.08)');
+  document.getElementById('viendo').innerHTML = color
+    ? `<span class="puntos"><i style="background:${color}"></i></span>Revisando: ${escapar(marca)}`
+    : `<span class="puntos">${Object.values(MARCAS_COLOR).map((c) => `<i style="background:${c}"></i>`).join('')}</span>Revisando: todas las marcas`;
 }
 
 function grafico(id, config) {
@@ -326,6 +426,9 @@ function grafico(id, config) {
   const vacio = lienzo.parentElement.querySelector('.vacio');
   if (vacio) vacio.remove();
   const tieneDatos = config.data.datasets.some((d) => d.data.some((x) => x !== null && x !== 0));
+  // Gráficos que solo aplican a algunas encuestas (NPS, atributos, productos) se ocultan si no hay datos
+  const tarjeta = lienzo.closest('.card');
+  if (tarjeta && tarjeta.hasAttribute('data-ocultable')) tarjeta.style.display = tieneDatos ? '' : 'none';
   if (!tieneDatos) {
     lienzo.style.display = 'none';
     lienzo.insertAdjacentHTML('afterend', '<div class="vacio">Sin datos para este filtro</div>');
@@ -340,7 +443,9 @@ function grafico(id, config) {
 const barras = (extra) => Object.assign({ borderRadius: 4, maxBarThickness: 28, borderSkipped: 'start' }, extra);
 
 function pintar() {
+  aplicarMarca();
   pintarTasa();
+  pintarMeses();
   const base = filtradas(true);
   const rs = filtradas(false);
   const completas = base.filter((r) => r.completada);
@@ -348,16 +453,18 @@ function pintar() {
   const recomendacion = nps(rs.map((r) => r.nps));
   const vieronOfertas = rs.filter((r) => r.acepta_ofertas === 'Sí' || r.acepta_ofertas === 'No');
   const conContacto = vieronOfertas.filter((r) => r.acepta_ofertas === 'Sí').length;
+  const med = mediana(completas.map((r) => Number(r.duracion_seg)));
 
   const kpis = [
-    ['Respuestas', rs.length, `${completas.length} completas · ${base.length - completas.length} incompletas`],
-    ['ISN experiencia', num(general.isn), `${general.sat} satisfechos · ${general.ins} insatisfechos`],
-    ['NPS', num(recomendacion.nps), `${recomendacion.n} notas · ${recomendacion.pro} promotores · ${recomendacion.det} detractores`],
-    ['Abandono', base.length ? pct((base.length - completas.length) / base.length) : '—', 'Encuestas que no llegaron al final'],
-    ['Duración mediana', mediana(completas.map((r) => Number(r.duracion_seg))) === null ? '—' : Math.round(mediana(completas.map((r) => Number(r.duracion_seg)))) + ' s', 'De las encuestas completas'],
-    ['Dejan su contacto', vieronOfertas.length ? pct(conContacto / vieronOfertas.length) : '—', `${conContacto} de ${vieronOfertas.length} que vieron la pantalla de ofertas`]
-  ];
-  document.getElementById('kpis').innerHTML = kpis.map(([t, v, d]) => `<div class="kpi"><div class="t">${t}</div><div class="v">${v}</div><div class="d">${escapar(d)}</div></div>`).join('');
+    ['Respuestas', rs.length, `${completas.length} completas · ${base.length - completas.length} incompletas`, 'Encuestas recibidas en el período y con los filtros elegidos.'],
+    ['ISN experiencia', num(general.isn), `${general.sat} satisfechos · ${general.ins} insatisfechos`, 'Satisfechos menos insatisfechos, de −100 a +100. Es el indicador principal: sobre +80 es muy bueno.'],
+    ['Clientes insatisfechos', general.n ? pct(general.ins / general.n) : '—', `${general.ins} de ${general.n} respuestas`, 'Porcentaje de clientes que marcaron Insatisfecho o Muy insatisfecho. Cada uno genera una alerta a la tienda cuando están activas.'],
+    recomendacion.n ? ['NPS', num(recomendacion.nps), `${recomendacion.n} notas · ${recomendacion.pro} promotores · ${recomendacion.det} detractores`, 'Solo encuestas con nota de 0 a 10: % de notas 9-10 menos % de notas 0-6.'] : null,
+    ['Dejan su contacto', vieronOfertas.length ? pct(conContacto / vieronOfertas.length) : '—', `${conContacto} de ${vieronOfertas.length} que vieron la pantalla de ofertas`, 'Clientes que dejaron nombre y correo, y aceptaron la política de privacidad, para recibir ofertas.'],
+    ['Abandono', base.length ? pct((base.length - completas.length) / base.length) : '—', 'Encuestas empezadas que no llegaron al final', 'Si sube mucho, la encuesta puede estar siendo larga o confusa.'],
+    ['Duración mediana', med === null ? '—' : Math.round(med) + ' s', 'Tiempo típico para responder', 'La mitad de los clientes responde en menos de este tiempo.']
+  ].filter(Boolean);
+  document.getElementById('kpis').innerHTML = kpis.map(([t, v, d, a]) => `<div class="kpi"><div class="t">${t} <span class="ayuda" tabindex="0" data-ayuda="${escapar(a)}">?</span></div><div class="v">${v}</div><div class="d">${escapar(d)}</div></div>`).join('');
 
   const flujos = FLUJOS.filter((f) => rs.some((r) => r.flujoClave === f));
 
@@ -366,7 +473,7 @@ function pintar() {
   grafico('g-experiencia', {
     type: 'bar',
     data: {
-      labels: flujos.map((f) => `${f} (ISN ${num(isn(rs.filter((r) => r.flujoClave === f).map((r) => r.experiencia)).isn)})`),
+      labels: flujos.map((f) => `${nombreFlujo(f)} (ISN ${num(isn(rs.filter((r) => r.flujoClave === f).map((r) => r.experiencia)).isn)})`),
       datasets: CARAS.map((c, i) => barras({
         label: c, backgroundColor: coloresCaras[i], borderColor: css('--superficie'), borderWidth: 1, borderRadius: 0,
         data: flujos.map((f) => { const v = rs.filter((r) => r.flujoClave === f && r.experiencia); return v.length ? v.filter((r) => r.experiencia === c).length / v.length * 100 : 0; })
@@ -379,7 +486,7 @@ function pintar() {
   grafico('g-nps', {
     type: 'bar',
     data: {
-      labels: flujos.map((f) => `${f} (NPS ${num(nps(rs.filter((r) => r.flujoClave === f).map((r) => r.nps)).nps)})`),
+      labels: flujos.map((f) => `${nombreFlujo(f)} (NPS ${num(nps(rs.filter((r) => r.flujoClave === f).map((r) => r.nps)).nps)})`),
       datasets: [['Detractores (0-6)', 'det', css('--div-neg-2')], ['Pasivos (7-8)', 'pas', css('--div-neutro')], ['Promotores (9-10)', 'pro', css('--div-pos-2')]].map(([label, k, color]) => barras({
         label, backgroundColor: color, borderColor: css('--superficie'), borderWidth: 1, borderRadius: 0,
         data: flujos.map((f) => { const x = nps(rs.filter((r) => r.flujoClave === f).map((r) => r.nps)); return x.n ? x[k] / x.n * 100 : 0; })
@@ -459,7 +566,7 @@ function pintar() {
       const x = rs.filter((r) => r.flujoClave === f);
       const of = x.filter((r) => r.acepta_ofertas === 'Sí' || r.acepta_ofertas === 'No');
       const med = mediana(c.map((r) => Number(r.duracion_seg)));
-      return `<tr><td><span class="punto" style="background:${colorFlujo(f)}"></span>${escapar(f)}</td><td class="num">${x.length}</td><td class="num">${num(isn(x.map((r) => r.experiencia)).isn)}</td><td class="num">${num(nps(x.map((r) => r.nps)).nps)}</td><td class="num">${pct((b.length - c.length) / b.length)}</td><td class="num">${med === null ? '—' : Math.round(med) + ' s'}</td><td class="num">${of.length ? pct(of.filter((r) => r.acepta_ofertas === 'Sí').length / of.length) : 'No aplica'}</td></tr>`;
+      return `<tr><td><span class="punto" style="background:${colorFlujo(f)}"></span>${escapar(nombreFlujo(f))}</td><td class="num">${x.length}</td><td class="num">${num(isn(x.map((r) => r.experiencia)).isn)}</td><td class="num">${num(nps(x.map((r) => r.nps)).nps)}</td><td class="num">${pct((b.length - c.length) / b.length)}</td><td class="num">${med === null ? '—' : Math.round(med) + ' s'}</td><td class="num">${of.length ? pct(of.filter((r) => r.acepta_ofertas === 'Sí').length / of.length) : 'No aplica'}</td></tr>`;
     }).join('')
   }</tbody></table>`;
 
@@ -472,15 +579,53 @@ function pintar() {
     const horas = (ahora - ultima) / 36e5;
     return { l, loc: locales[l] || {}, n: x.length, isn: isn(x.map((r) => r.experiencia)).isn, nps: nps(x.map((r) => r.nps)).nps, ab: (b.length - b.filter((r) => r.completada).length) / b.length, ultima, horas };
   }).sort((a, b) => (b.isn === null ? -2 : b.isn) - (a.isn === null ? -2 : a.isn));
-  document.getElementById('t-locales').innerHTML = filasLocales.length ? `<table><thead><tr><th>#</th><th>Local</th><th>Nombre</th><th>Supervisor</th><th>Gerente de operaciones</th><th class="num">Respuestas</th><th class="num">ISN</th><th class="num">NPS</th><th class="num">Abandono</th><th>Última respuesta</th><th>Estado</th></tr></thead><tbody>${
-    filasLocales.map((f, i) => `<tr><td>${i + 1}</td><td><b>${escapar(f.l)}</b></td><td>${escapar(f.loc.nombre || (f.l === 'SIN-LOCAL' ? 'Tablet sin código de local' : 'No está en la hoja Locales'))}</td><td>${escapar(f.loc.supervisor || '—')}</td><td>${escapar(f.loc.gop || '—')}</td><td class="num">${f.n}</td><td class="num">${num(f.isn)}</td><td class="num">${num(f.nps)}</td><td class="num">${pct(f.ab)}</td><td>${new Date(f.ultima).toLocaleString('es-CL')}</td><td>${f.horas < 2 ? '<span class="estado ok">Activo</span>' : f.horas < 24 ? '<span class="estado alerta">Sin respuestas hace ' + Math.floor(f.horas) + ' h</span>' : '<span class="estado mal">Sin respuestas hace ' + Math.floor(f.horas / 24) + ' días</span>'}</td></tr>`).join('')
+  const actividad = (h) => h < 24 ? '<span class="estado ok">Con respuestas hoy</span>' : h < 72 ? '<span class="estado alerta">Sin respuestas hace ' + Math.floor(h / 24) + (Math.floor(h / 24) === 1 ? ' día' : ' días') + '</span>' : '<span class="estado mal">Sin respuestas hace ' + Math.floor(h / 24) + ' días</span>';
+  document.getElementById('t-locales').innerHTML = filasLocales.length ? `<table><thead><tr><th>#</th><th>Tienda</th><th>Marca</th><th>Supervisor</th><th>Gerente de operaciones</th><th class="num">Respuestas</th><th class="num">ISN</th><th class="num">Insatisfechos</th><th>Última respuesta</th><th>Actividad</th></tr></thead><tbody>${
+    filasLocales.map((f, i) => {
+      const x = rs.filter((r) => r.local === f.l);
+      const marca = f.loc.marca || (x[0] && x[0].marca) || '';
+      return `<tr><td>${i + 1}</td><td><b>${escapar(f.loc.nombre || f.l)}</b>${f.loc.nombre ? ` <span style="color:var(--texto-3)">${escapar(f.l)}</span>` : f.l === 'SIN-LOCAL' ? ' <span style="color:var(--texto-3)">sin código de tienda</span>' : ' <span style="color:var(--texto-3)">falta en la hoja Locales</span>'}</td><td><span class="punto" style="background:${MARCAS_COLOR[marca] || 'var(--texto-3)'}"></span>${escapar(marca)}</td><td>${escapar(f.loc.supervisor || '—')}</td><td>${escapar(f.loc.gop || '—')}</td><td class="num">${f.n}</td><td class="num">${num(f.isn)}</td><td class="num">${isn(x.map((r) => r.experiencia)).ins}</td><td>${new Date(f.ultima).toLocaleString('es-CL')}</td><td>${actividad(f.horas)}</td></tr>`;
+    }).join('')
   }</tbody></table>` : '<div class="vacio">Sin datos para este filtro</div>';
 
   // Comentarios
+  const sinPrefijo = (m) => String(m || '').replace(/^(Gustó|Mejorar):\s*/, '');
+  const colorCara = (e) => INSATISFECHOS.includes(e) ? 'var(--critico)' : e === 'Indiferente' ? '#b07a00' : 'var(--bien)';
+  const nombreTienda = (l) => escapar(locales[l] && locales[l].nombre ? locales[l].nombre : l);
   const comentarios = rs.filter((r) => String(r.comentario || '').trim()).sort((a, b) => b.fecha - a.fecha).slice(0, 30);
-  document.getElementById('t-comentarios').innerHTML = comentarios.length ? `<table><thead><tr><th>Fecha</th><th>Flujo</th><th>Local</th><th>Experiencia</th><th class="num">NPS</th><th>Comentario</th></tr></thead><tbody>${
-    comentarios.map((r) => `<tr><td style="white-space:nowrap">${r.fecha.toLocaleString('es-CL')}</td><td style="white-space:nowrap"><span class="punto" style="background:${colorFlujo(r.flujoClave)}"></span>${escapar(r.flujoClave)}</td><td>${escapar(r.local)}</td><td style="white-space:nowrap">${escapar(r.experiencia)}</td><td class="num">${escapar(r.nps)}</td><td class="texto">${escapar(r.comentario)}</td></tr>`).join('')
+  document.getElementById('t-comentarios').innerHTML = comentarios.length ? `<table><thead><tr><th>Fecha</th><th>Marca</th><th>Tienda</th><th>Experiencia</th><th>Destacó o falló</th><th>Comentario</th></tr></thead><tbody>${
+    comentarios.map((r) => `<tr style="box-shadow: inset 3px 0 0 ${colorCara(r.experiencia)}"><td>${r.fecha.toLocaleString('es-CL')}</td><td><span class="punto" style="background:${MARCAS_COLOR[r.marca] || 'var(--texto-3)'}"></span>${escapar(r.marca)}</td><td>${nombreTienda(r.local)}</td><td><span class="estado" style="color:${colorCara(r.experiencia)}">${escapar(r.experiencia)}</span></td><td class="texto">${escapar(sinPrefijo(r.motivos))}</td><td class="texto">${escapar(r.comentario)}</td></tr>`).join('')
   }</tbody></table>` : '<div class="vacio">Sin comentarios para este filtro</div>';
+
+  // Detalle de respuestas, como la tabla de respuestas de Global Metrics
+  const detalle = [...base].sort((a, b) => b.fecha - a.fecha).slice(0, 100);
+  document.getElementById('t-detalle').innerHTML = detalle.length ? `<table><thead><tr><th>Fecha</th><th>Marca</th><th>Tienda</th><th>Canal</th><th>Encuesta</th><th>Experiencia</th><th>Destacó o falló</th><th>Comentario</th><th>Dejó contacto</th><th>Completa</th></tr></thead><tbody>${
+    detalle.map((r) => `<tr><td>${r.fecha.toLocaleString('es-CL')}</td><td><span class="punto" style="background:${MARCAS_COLOR[r.marca] || 'var(--texto-3)'}"></span>${escapar(r.marca)}</td><td>${nombreTienda(r.local)}</td><td>${escapar(r.canal || 'tablet')}</td><td>${escapar(NOMBRE_FLUJO[r.flujo] || r.flujo)}</td><td>${r.experiencia ? `<span class="estado" style="color:${colorCara(r.experiencia)}">${escapar(r.experiencia)}</span>` : '—'}</td><td class="texto">${escapar(sinPrefijo(r.motivos))}</td><td class="texto">${escapar(r.comentario)}</td><td>${r.acepta_ofertas === 'Sí' ? 'Sí' : 'No'}</td><td>${r.completada ? 'Sí' : 'No'}</td></tr>`).join('')
+  }</tbody></table>` : '<div class="vacio">Sin respuestas para este filtro</div>';
+}
+
+// Evolución de los últimos 13 meses (no depende del filtro de período)
+function pintarMeses() {
+  const rs = respuestasSinPeriodo();
+  const hoy = new Date();
+  const meses = Array.from({ length: 13 }, (_, i) => new Date(hoy.getFullYear(), hoy.getMonth() - 12 + i, 1));
+  const clave = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+  const nombres = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+  const etiquetas = meses.map((d) => nombres[d.getMonth()] + ' ' + String(d.getFullYear()).slice(2));
+  const porMes = meses.map((d) => rs.filter((r) => !isNaN(r.fecha) && clave(r.fecha) === clave(d)));
+  // Una sola serie: toma el color de la marca elegida, o el azul de datos en multimarca
+  const color = MARCAS_COLOR[document.getElementById('f-marca').value] || css('--serie-1');
+  grafico('g-mes-resp', {
+    type: 'bar',
+    data: { labels: etiquetas, datasets: [barras({ label: 'Respuestas', backgroundColor: color, data: porMes.map((f) => f.length) })] },
+    options: { maintainAspectRatio: false, scales: { x: { grid: { display: false } }, y: { beginAtZero: true, ticks: { precision: 0 } } }, plugins: { legend: { display: false } } }
+  });
+  grafico('g-mes-isn', {
+    type: 'line',
+    data: { labels: etiquetas, datasets: [{ label: 'ISN', borderColor: color, backgroundColor: color, borderWidth: 2, pointRadius: 4, pointHoverRadius: 6, tension: 0.2, spanGaps: true,
+      data: porMes.map((f) => { const x = isn(f.map((r) => r.experiencia)).isn; return x === null ? null : Math.round(x * 100); }) }] },
+    options: { maintainAspectRatio: false, interaction: { mode: 'index', intersect: false }, scales: { y: { min: -100, max: 100 }, x: { grid: { display: false } } }, plugins: { legend: { display: false } } }
+  });
 }
 
 // ---------- Tasa de insatisfacción (insatisfechos ÷ transacciones) ----------
@@ -621,32 +766,46 @@ function pintarTasa() {
   document.getElementById('t-sgo').innerHTML = tablaGrupo('supervisor', 'Supervisor');
 }
 
-// ---------- Datos de ejemplo (?demo): 24 locales y 8 semanas, generados en el navegador ----------
+// ---------- Datos de ejemplo (?demo): 3 marcas, 24 tiendas y 13 meses, generados en el navegador ----------
+// Las últimas 8 semanas traen transacciones (para la tasa de insatisfacción); los meses anteriores, menos respuestas.
 function datosDemo() {
   let semilla = 7;
   const azar = () => { semilla = (semilla * 16807) % 2147483647; return (semilla - 1) / 2147483646; };
-  const elegir = (lista) => lista[Math.floor(azar() * lista.length)];
+  const elegirVarios = (lista) => lista.filter(() => azar() < 0.3).slice(0, 3).concat(lista[Math.floor(azar() * lista.length)]).filter((x, i, a) => a.indexOf(x) === i);
+  const OPCIONES = {
+    'Dunkin': { gusto: ['Calidad del producto', 'Rapidez de atención', 'Amabilidad del personal', 'Pedido correcto', 'Limpieza del local'], mejorar: ['Demora en la atención', 'Calidad del producto', 'Pedido incorrecto', 'Faltaban productos', 'Limpieza del local'] },
+    "Jimmy John's": { gusto: ['Sabor del sándwich', 'Ingredientes frescos', 'Rapidez (freaky fast)', 'Amabilidad del personal'], mejorar: ['Demora en la entrega', 'Pedido incorrecto', 'Ingredientes poco frescos', 'Atención del personal'] },
+    'Savory': { gusto: ['Sabor del helado', 'Variedad de sabores', 'Atención del personal', 'Rapidez'], mejorar: ['Pocos sabores disponibles', 'Demora en la atención', 'Textura o temperatura', 'Limpieza del local'] }
+  };
+  const COMENTARIOS = { bien: ['Muy buena atención, volveré.', 'Todo rico y rápido.', 'Excelente servicio de la cajera.'], mal: ['Esperé más de 15 minutos.', 'Me entregaron el pedido equivocado.', 'Las mesas estaban sucias.', 'No había lo que quería.'] };
   const GO = ['GO Norte', 'GO Centro', 'GO Sur'];
   const SGO = ['Supervisor 1', 'Supervisor 2', 'Supervisor 3', 'Supervisor 4', 'Supervisor 5', 'Supervisor 6', 'Supervisor 7', 'Supervisor 8'];
   const nombres = ['Independencia', 'Curauma', 'Bulnes', 'Tamarugo', 'Alerce', 'Paseo Quilpué', 'Las Flores', 'Arauco Maipú', 'Plaza La Serena', 'Lider Arica', 'Portal La Reina', 'Arauco El Bosque', 'Manuel Montt', 'Zofri', 'Quillota', 'Vivo Coquimbo', 'El Rosal', 'Huérfanos', 'Jumbo Viña', 'Colón', 'Marbella', 'Recoleta', 'Piedra Roja', 'Plaza América'];
-  const locs = nombres.map((n, i) => ({ local: 'DK' + String(101 + i), nombre: n, marca: 'Dunkin', supervisor: SGO[i % 8], gop: GO[Math.floor((i % 8) / 3) % 3], calidad: 0.015 + azar() * 0.07 }));
+  const marcaDe = (i) => i < 16 ? ['Dunkin', 'DK'] : i < 20 ? ["Jimmy John's", 'JJ'] : ['Savory', 'SV'];
+  const locs = nombres.map((n, i) => ({ local: marcaDe(i)[1] + String(101 + i), nombre: n, marca: marcaDe(i)[0], supervisor: SGO[i % 8], gop: GO[Math.floor((i % 8) / 3) % 3], calidad: 0.015 + azar() * 0.07 }));
   const respuestas = [], trx = [];
   const hoy = new Date(); hoy.setHours(12, 0, 0, 0);
-  for (let k = 56; k >= 1; k--) {
+  for (let k = 395; k >= 1; k--) {
     const fecha = new Date(hoy); fecha.setDate(hoy.getDate() - k);
     const dia = diaDe(fecha);
+    const reciente = k <= 56;
+    // La satisfacción mejora de a poco en el año, para que la tendencia se vea
+    const ajuste = 1 + k / 400;
     locs.forEach((l) => {
       const boletas = 90 + Math.floor(azar() * 160);
-      trx.push({ fecha: dia, local: l.local, trx: boletas });
-      const n = Math.max(2, Math.round(boletas * (0.06 + azar() * 0.06)));
+      if (reciente) trx.push({ fecha: dia, local: l.local, trx: boletas });
+      const n = reciente ? Math.max(2, Math.round(boletas * (0.06 + azar() * 0.06))) : 1 + Math.floor(azar() * 3);
       for (let j = 0; j < n; j++) {
+        const c = l.calidad * ajuste;
         const u = azar();
-        const exp = u < l.calidad * 0.45 ? 'Muy insatisfecho' : u < l.calidad ? 'Insatisfecho' : u < l.calidad + 0.06 ? 'Indiferente' : u < 0.45 ? 'Satisfecho' : 'Muy satisfecho';
-        const atr = () => { const v = azar(); return v < l.calidad * 0.6 ? 'Insatisfecho' : v < l.calidad * 0.6 + 0.05 ? 'Indiferente' : v < 0.5 ? 'Satisfecho' : 'Muy satisfecho'; };
+        const exp = u < c * 0.45 ? 'Muy insatisfecho' : u < c ? 'Insatisfecho' : u < c + 0.06 ? 'Indiferente' : u < 0.45 ? 'Satisfecho' : 'Muy satisfecho';
+        const bueno = exp === 'Muy satisfecho' || exp === 'Satisfecho';
+        const op = OPCIONES[l.marca];
         const inicio = new Date(fecha); inicio.setHours(8 + Math.floor(azar() * 13), Math.floor(azar() * 60));
-        respuestas.push({ id: 'demo-' + respuestas.length, local: l.local, marca: 'Dunkin', flujo: 'Actual', inicio: inicio.toISOString(), completada: azar() > 0.08, ultimo_paso: 'Gracias', duracion_seg: 20 + Math.floor(azar() * 40),
-          experiencia: exp, tipo_cliente: azar() < 0.1 ? 'Delivery' : 'Cliente', producto: elegir(['Donuts', 'Bebidas calientes', 'Bebidas frías', 'Sándwiches', 'Muffins']),
-          calidad: atr(), exactitud: atr(), velocidad: atr(), amabilidad: atr(), limpieza: atr(), nps: exp.includes('Insatisfecho') ? Math.floor(azar() * 7) : 7 + Math.floor(azar() * 4), comentario: '', acepta_ofertas: '' });
+        const completa = azar() > 0.08;
+        respuestas.push({ id: 'demo-' + respuestas.length, local: l.local, canal: azar() < 0.6 ? 'boleta' : 'tienda', marca: l.marca, flujo: 'QR', inicio: inicio.toISOString(), completada: completa, ultimo_paso: completa ? 'Gracias' : 'Detalle', duracion_seg: 15 + Math.floor(azar() * 30),
+          experiencia: exp, motivos: (bueno ? 'Gustó: ' : 'Mejorar: ') + elegirVarios(bueno ? op.gusto : op.mejorar).join(', '),
+          comentario: azar() < (bueno ? 0.08 : 0.4) ? (bueno ? COMENTARIOS.bien : COMENTARIOS.mal)[Math.floor(azar() * 3)] : '', acepta_ofertas: completa ? (azar() < 0.2 ? 'Sí' : 'No') : '' });
       }
     });
   }
@@ -664,10 +823,10 @@ function exportarCSV() {
   enlace.click();
 }
 
-['f-marca', 'f-flujo', 'f-canal', 'f-gop', 'f-supervisor', 'f-local', 'f-periodo', 'f-completas'].forEach((id) => document.getElementById(id).addEventListener('change', pintar));
+['f-marca', 'f-flujo', 'f-canal', 'f-tipo', 'f-gop', 'f-supervisor', 'f-local', 'f-periodo', 'f-completas'].forEach((id) => document.getElementById(id).addEventListener('change', pintar));
 document.getElementById('t-dia').addEventListener('change', pintarTasa);
 document.getElementById('t-limite').addEventListener('input', pintarTasa);
-if (MODO_DEMO) document.getElementById('error').insertAdjacentHTML('beforebegin', '<div class="demo">Datos de ejemplo generados en el navegador: 24 locales y 8 semanas. No vienen de la planilla. <a href="dashboard.html">Ver los datos reales</a></div>');
+if (MODO_DEMO) document.getElementById('error').insertAdjacentHTML('beforebegin', '<div class="demo">Datos de ejemplo generados en el navegador: 3 marcas, 24 tiendas y 13 meses. No vienen de la planilla. <a href="dashboard.html">Ver los datos reales</a></div>');
 document.getElementById('btn-actualizar').addEventListener('click', cargar);
 document.getElementById('btn-csv').addEventListener('click', exportarCSV);
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => todas.length && pintar());
