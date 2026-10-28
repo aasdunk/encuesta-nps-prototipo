@@ -151,7 +151,7 @@ body { border-top: 5px solid var(--marca); transition: border-color 0.3s; }
     <ul>
       <li><b>Elige una marca</b> en los filtros para ver solo esa marca; el color de la página cambia al de la marca. Sin marca elegida ves el consolidado multimarca.</li>
       <li><b>ISN</b> (índice de satisfacción neta) es el indicador principal: % de clientes satisfechos menos % de insatisfechos. Va de −100 a +100; sobre +80 es muy bueno.</li>
-      <li><b>Tasa de insatisfacción</b> es la métrica del reporte de Global Metrics: clientes insatisfechos por cada 100 transacciones. Mientras más baja, mejor; el límite es 0,60%.</li>
+      <li><b>Tasa de insatisfacción</b>: clientes insatisfechos por cada 100 transacciones. Mientras más baja, mejor; el límite es 0,60%.</li>
       <li>Pasa el cursor (o toca) los signos <span class="ayuda" tabindex="0" data-ayuda="Así se ven las ayudas: explican cada número en una frase.">?</span> para ver qué significa cada número.</li>
     </ul>
   </details>
@@ -178,7 +178,7 @@ body { border-top: 5px solid var(--marca); transition: border-color 0.3s; }
 
   <section class="bloque" aria-label="Evolución mensual">
     <div class="bloque-cab"><div>
-      <h2>Evolución de los últimos 13 meses <span class="ayuda" tabindex="0" data-ayuda="Muestra la tendencia de largo plazo, igual que el gráfico de 13 meses de Global Metrics. No depende del filtro de período.">?</span></h2>
+      <h2>Evolución de los últimos 13 meses <span class="ayuda" tabindex="0" data-ayuda="Muestra la tendencia de largo plazo, mes a mes. No depende del filtro de período.">?</span></h2>
       <p class="nota">¿Estamos mejorando o empeorando mes a mes?</p>
     </div></div>
     <div class="grid">
@@ -190,7 +190,7 @@ body { border-top: 5px solid var(--marca); transition: border-color 0.3s; }
   <section class="bloque" aria-label="Tasa de insatisfacción">
     <div class="bloque-cab">
       <div>
-        <h2>Tasa de insatisfacción y ranking de tiendas <span class="ayuda" tabindex="0" data-ayuda="Insatisfechos dividido por las transacciones del local, como en el reporte diario de Global Metrics. Solo cuentan los días con transacciones cargadas en la hoja Transacciones.">?</span></h2>
+        <h2>Tasa de insatisfacción y ranking de tiendas <span class="ayuda" tabindex="0" data-ayuda="Insatisfechos dividido por las transacciones del local. Solo cuentan los días con transacciones cargadas en la hoja Transacciones.">?</span></h2>
         <p class="nota">¿Qué tiendas tienen más clientes insatisfechos por cada venta? Esta sección usa su propio día de referencia.</p>
       </div>
       <div class="filtros-bloque">
@@ -275,7 +275,7 @@ body { border-top: 5px solid var(--marca); transition: border-color 0.3s; }
   </section>
 
   <p class="pie">
-    <b>ISN</b> = % de muy satisfechos y satisfechos − % de insatisfechos y muy insatisfechos; "indiferente" cuenta como neutro, igual que en Global Metrics.
+    <b>ISN</b> = % de muy satisfechos y satisfechos − % de insatisfechos y muy insatisfechos; "indiferente" cuenta como neutro.
     <b>Tasa de insatisfacción</b> = insatisfechos ÷ transacciones. Los datos personales (nombre y correo) no se muestran: solo se indica si la persona dejó sus datos para ofertas.
     Tiendas, supervisores y gerentes se configuran en la hoja <b>Locales</b>; las transacciones, en la hoja <b>Transacciones</b>.
   </p>
@@ -371,7 +371,7 @@ const FILTROS = [
   ['f-local', 'Todos los locales', (r) => r.local]
 ];
 // Nombres más claros para las versiones de la encuesta
-const NOMBRE_FLUJO = { QR: 'Celular (QR)', Actual: 'Tablet actual (GM)', Propuesto: 'Tablet propuesta' };
+const NOMBRE_FLUJO = { QR: 'Celular (QR)', Actual: 'Tablet actual', Propuesto: 'Tablet propuesta' };
 const nombreFlujo = (f) => f;
 function llenarFiltros() {
   FILTROS.forEach(([id, todos, campo]) => {
@@ -593,7 +593,7 @@ function pintar() {
     comentarios.map((r) => `<tr style="box-shadow: inset 3px 0 0 ${colorCara(r.experiencia)}"><td>${r.fecha.toLocaleString('es-CL')}</td><td><span class="punto" style="background:${MARCAS_COLOR[r.marca] || 'var(--texto-3)'}"></span>${escapar(r.marca)}</td><td>${nombreTienda(r.local)}</td><td><span class="estado" style="color:${colorCara(r.experiencia)}">${escapar(r.experiencia)}</span></td><td class="texto">${escapar(sinPrefijo(r.motivos))}</td><td class="texto">${escapar(r.comentario)}</td></tr>`).join('')
   }</tbody></table>` : '<div class="vacio">Sin comentarios para este filtro</div>';
 
-  // Detalle de respuestas, como la tabla de respuestas de Global Metrics
+  // Detalle de respuestas: las más recientes, una por fila
   const detalle = [...base].sort((a, b) => b.fecha - a.fecha).slice(0, 100);
   document.getElementById('t-detalle').innerHTML = detalle.length ? `<table><thead><tr><th>Fecha</th><th>Marca</th><th>Tienda</th><th>Experiencia</th><th>Destacó o falló</th><th>Comentario</th><th>Dejó contacto</th><th>Completa</th></tr></thead><tbody>${
     detalle.map((r) => `<tr><td>${r.fecha.toLocaleString('es-CL')}</td><td><span class="punto" style="background:${MARCAS_COLOR[r.marca] || 'var(--texto-3)'}"></span>${escapar(r.marca)}</td><td>${nombreTienda(r.local)}</td><td>${r.experiencia ? `<span class="estado" style="color:${colorCara(r.experiencia)}">${escapar(r.experiencia)}</span>` : '—'}</td><td class="texto">${escapar(sinPrefijo(r.motivos))}</td><td class="texto">${escapar(r.comentario)}</td><td>${r.acepta_ofertas === 'Sí' ? 'Sí' : 'No'}</td><td>${r.completada ? 'Sí' : 'No'}</td></tr>`).join('')
