@@ -5,7 +5,7 @@ Prototipo web de la encuesta NPS para las tablets de tienda. Tiene tres flujos:
 | Página | Flujo |
 | --- | --- |
 | `index.html` | Menú para elegir marca y flujo |
-| `dunkin-actual.html` | Dunkin, encuesta actual de Global Metrics (11 pasos) |
+| `dunkin-actual.html` | Dunkin, encuesta actual (11 pasos) |
 | `dunkin-propuesto.html` | Dunkin, encuesta propuesta por FAGASE (5 pasos) |
 | `jj-propuesto.html` | Jimmy John's, propuesta basada en datos (5 o 6 pasos) |
 
